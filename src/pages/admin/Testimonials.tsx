@@ -1,0 +1,401 @@
+import { useAuth } from '../../context/AuthContext';
+import { Navigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { supabase, Testimonial } from '../../lib/supabase';
+import GlassCard from '../../components/GlassCard';
+import { Trash2, Edit3, X, User, Star, Plus, Loader2, ChevronUp, ChevronDown, UserCircle, Pencil } from 'lucide-react';
+
+export default function AdminTestimonials() {
+  const { user, loading: authLoading } = useAuth();
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [editing, setEditing] = useState<Partial<Testimonial> | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (user) loadTestimonials();
+  }, [user]);
+
+  async function loadTestimonials() {
+    const { data } = await supabase.from('testimonials').select('*').order('display_order', { ascending: true });
+    if (data) setTestimonials(data as Testimonial[]);
+  }
+
+  function handleAvatarSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!e.target.files?.length || !editing) return;
+    const file = e.target.files[0];
+    
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File is too large. Maximum size is 10MB.');
+      return;
+    }
+
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  }
+
+  async function handleSave() {
+    if (!editing) return;
+    setSaving(true);
+    
+    let finalAvatarUrl = editing.avatar_url;
+    
+    if (avatarFile) {
+      try {
+        const fileName = `avatar-${Date.now()}-${avatarFile.name.replace(/\s+/g, '-')}`;
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(fileName, avatarFile, { cacheControl: '3600', upsert: false });
+          
+        if (uploadError) {
+          if (uploadError.message.includes('bucket not found')) {
+            // Auto-create bucket if not exists
+            await supabase.storage.createBucket('avatars', { public: true });
+            await supabase.storage.from('avatars').upload(fileName, avatarFile, { cacheControl: '3600', upsert: false });
+          } else {
+            throw uploadError;
+          }
+        }
+        
+        const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
+        finalAvatarUrl = publicUrl;
+      } catch (err: any) {
+        console.error('Avatar upload failed:', err);
+        alert('Upload failed: ' + err.message);
+        setSaving(false);
+        return;
+      }
+    }
+    
+    const payload = {
+      ...editing,
+      avatar_url: finalAvatarUrl,
+      star_rating: editing.star_rating || 5,
+      is_published: editing.is_published !== false,
+      display_order: editing.display_order || testimonials.length
+    };
+
+    let error;
+    if (editing.id) {
+      const { error: err } = await supabase.from('testimonials').update(payload).eq('id', editing.id);
+      error = err;
+    } else {
+      const { error: err } = await supabase.from('testimonials').insert([payload]);
+      error = err;
+    }
+
+    if (error) {
+      alert('Save failed: ' + error.message);
+    } else {
+      setEditing(null);
+      loadTestimonials();
+    }
+    setSaving(false);
+  }
+
+  async function deleteTestimonial(id: string) {
+    if (confirm('Delete this testimonial?')) {
+      const { error } = await supabase.from('testimonials').delete().eq('id', id);
+      if (error) {
+        alert('Delete failed: ' + error.message);
+      } else {
+        loadTestimonials();
+      }
+    }
+  }
+
+  async function togglePublished(id: string, current: boolean) {
+    await supabase.from('testimonials').update({ is_published: !current }).eq('id', id);
+    loadTestimonials();
+  }
+
+  async function updateOrder(id: string, currentOrder: number, direction: 'up' | 'down') {
+    const newOrder = direction === 'up' ? currentOrder - 1 : currentOrder + 1;
+    await supabase.from('testimonials').update({ display_order: newOrder }).eq('id', id);
+    loadTestimonials();
+  }
+
+  if (authLoading) return <div className="min-h-screen flex items-center justify-center font-mono text-muted">/ loading_testimonials...</div>;
+  if (!user) return <Navigate to="/" />;
+
+  return (
+    <div className="bg-[var(--admin-bg)] text-[var(--admin-text)] transition-colors min-h-screen py-12 px-4">
+      <div className="max-w-4xl mx-auto space-y-8">
+        
+        <div className="flex justify-between items-end">
+          <div className="space-y-1">
+            <h1 className="text-3xl font-display text-[var(--admin-text)]">Testimonials</h1>
+            <p className="text-[var(--admin-text-muted)] text-sm">Manage social proof and client feedback.</p>
+          </div>
+          <button 
+            onClick={() => {
+              setAvatarFile(null);
+              setAvatarPreview(null);
+              setEditing({ 
+                quote_text: '', 
+                person_name: '', 
+                person_role: '', 
+                person_company: '', 
+                star_rating: 5, 
+                is_published: true,
+                display_order: testimonials.length 
+              });
+            }} 
+            className="flex items-center gap-2 px-6 py-2 rounded-xl transition-all font-bold"
+            style={{ backgroundColor: 'var(--admin-accent)', color: 'white' }}
+          >
+            <Plus size={18} />
+            <span>Add New</span>
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          {testimonials.map((t, i) => (
+            <GlassCard 
+              key={t.id} 
+              className="grid grid-cols-1 md:grid-cols-[80px_1fr_auto] items-start md:items-center gap-4 md:gap-8 p-6 group !bg-[var(--admin-card)] !border-[var(--admin-border)] relative overflow-hidden"
+            >
+              {/* Order Controls */}
+              <div className="flex md:flex-col items-center justify-center gap-2 md:gap-1 order-3 md:order-1 h-full border-t md:border-none pt-4 md:pt-0 mt-2 md:mt-0 bg-[var(--admin-input-bg)]/30 md:bg-transparent rounded-lg">
+                <button 
+                  onClick={() => updateOrder(t.id, t.display_order, 'up')} 
+                  className="text-[var(--admin-text-muted)] hover:text-[var(--admin-accent)] transition-colors disabled:opacity-0" 
+                  disabled={i === 0}
+                >
+                  <ChevronUp size={20} />
+                </button>
+                <span className="text-xs font-mono font-bold text-[var(--admin-text-muted)]">{i + 1}</span>
+                <button 
+                  onClick={() => updateOrder(t.id, t.display_order, 'down')} 
+                  className="text-[var(--admin-text-muted)] hover:text-[var(--admin-accent)] transition-colors disabled:opacity-0" 
+                  disabled={i === testimonials.length - 1}
+                >
+                  <ChevronDown size={20} />
+                </button>
+              </div>
+
+              {/* Content Main Area */}
+              <div className="flex flex-col md:flex-row items-center md:items-start gap-6 order-1 md:order-2 w-full">
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden bg-[var(--admin-input-bg)] border border-[var(--admin-border)] flex-shrink-0 shadow-inner group-hover:border-[var(--admin-accent)]/50 transition-all">
+                  {t.avatar_url ? (
+                    <img src={t.avatar_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-[var(--admin-text-muted)]" style={{ backgroundColor: 'color-mix(in srgb, var(--admin-accent), transparent 95%)' }}>
+                      <User size={32} />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex-1 min-w-0 space-y-2 text-center md:text-left">
+                  <div className="flex flex-col md:flex-row items-center gap-3">
+                    <h3 className="text-lg font-display font-bold text-[var(--admin-text)] truncate">{t.person_name}</h3>
+                    <div className="flex gap-0.5">
+                      {[...Array(5)].map((_, idx) => (
+                        <Star 
+                          key={idx} 
+                          size={14} 
+                          className={idx < t.star_rating ? 'fill-[var(--accent-lime)] text-[var(--accent-lime)]' : 'text-[var(--admin-text-muted)]/20'} 
+                          style={idx < t.star_rating ? { fill: 'var(--accent-lime)', color: 'var(--accent-lime)' } : {}}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-sm text-[var(--admin-text-muted)] italic leading-relaxed">"{t.quote_text}"</p>
+                  <div className="flex items-center justify-center md:justify-start gap-2 text-xs font-mono" style={{ color: 'var(--admin-accent)' }}>
+                    <span className="font-bold">{t.person_role}</span>
+                    <span className="opacity-40">@</span>
+                    <span>{t.person_company}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions Area */}
+              <div className="flex items-center justify-between md:flex-col md:justify-center gap-4 w-full md:w-40 order-2 md:order-3 md:border-l md:border-[var(--admin-border)] md:pl-8">
+                <button 
+                  onClick={() => togglePublished(t.id, t.is_published)}
+                  className={`text-[10px] font-mono px-4 py-1.5 rounded-full border transition-all font-bold tracking-wider ${
+                    t.is_published 
+                      ? 'bg-green-500/10 border-green-500/20 text-green-500 shadow-[0_0_15px_rgba(34,197,94,0.1)]' 
+                      : 'bg-[var(--admin-input-bg)] text-[var(--admin-text-muted)] border-[var(--admin-border)]'
+                  }`}
+                >
+                  {t.is_published ? 'PUBLISHED' : 'DRAFT'}
+                </button>
+                
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => {
+                      setAvatarFile(null);
+                      setAvatarPreview(null);
+                      setEditing(t);
+                    }} 
+                    className="p-3 rounded-xl bg-[var(--admin-input-bg)] border border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:border-[var(--admin-accent)] transition-all shadow-sm"
+                    title="Edit Testimonial"
+                  >
+                    <Edit3 size={18} />
+                  </button>
+                  <button 
+                    onClick={() => deleteTestimonial(t.id)} 
+                    className="p-3 rounded-xl bg-red-500/5 border border-red-500/10 text-[var(--admin-text-muted)] hover:text-red-400 hover:border-red-500/30 transition-all shadow-sm"
+                    title="Delete Testimonial"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              </div>
+            </GlassCard>
+          ))}
+        </div>
+      </div>
+
+      {/* Edit Modal */}
+      {editing && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-[var(--admin-border)] flex items-center justify-between" style={{ backgroundColor: 'color-mix(in srgb, var(--admin-surface), transparent 70%)' }}>
+              <h2 className="text-xl font-display text-[var(--admin-text)]">{editing.id ? 'Edit Testimonial' : 'New Testimonial'}</h2>
+              <button onClick={() => setEditing(null)} className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors">
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="p-8 space-y-6">
+              <div className="flex flex-col items-center gap-4 mb-8">
+                <label className="block text-xs font-mono uppercase tracking-widest text-[var(--admin-text-muted)]">Client Avatar</label>
+                <style>
+                  {`
+                    .avatar-hover-overlay:hover {
+                      opacity: 1 !important;
+                    }
+                  `}
+                </style>
+                <div
+                  onClick={() => avatarInputRef.current?.click()}
+                  style={{
+                    width: '80px', height: '80px', borderRadius: '50%',
+                    border: '2px dashed var(--admin-border)',
+                    cursor: 'pointer', overflow: 'hidden',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'var(--admin-input-bg)',
+                    position: 'relative',
+                  }}
+                >
+                  {avatarPreview || editing.avatar_url ? (
+                    <img src={avatarPreview || editing.avatar_url || ''} alt="Avatar preview"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ textAlign: 'center' }}>
+                      <UserCircle size={28} className="mx-auto" color="var(--admin-text-muted)" />
+                      <p style={{ fontSize: '11px', color: 'var(--admin-text-muted)', marginTop: '4px' }}>Upload</p>
+                    </div>
+                  )}
+                  {(avatarPreview || editing.avatar_url) && (
+                    <div style={{
+                      position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      opacity: 0, transition: '150ms',
+                    }}
+                      className="avatar-hover-overlay"
+                    >
+                      <Pencil size={16} color="white" />
+                    </div>
+                  )}
+                </div>
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  style={{ display: 'none' }}
+                  onChange={handleAvatarSelect}
+                />
+                <p className="text-[10px] text-[var(--admin-text-muted)] font-mono uppercase tracking-widest opacity-50">PNG, JPG, WebP. Max 10MB.</p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-mono uppercase tracking-widest text-[var(--admin-text-muted)] mb-2">Quote Text</label>
+                  <textarea 
+                    value={editing.quote_text || ''} 
+                    onChange={e => setEditing({...editing, quote_text: e.target.value})}
+                    className="w-full rounded-xl p-4 text-[var(--admin-text)] text-sm h-24 focus:outline-none transition-all"
+                    style={{ background: 'var(--admin-input-bg)', border: '1px solid var(--admin-border)' }}
+                    placeholder="Enter the client's testimonial..."
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-mono uppercase tracking-widest text-[var(--admin-text-muted)] mb-2">Person Name</label>
+                    <input 
+                      type="text" 
+                      value={editing.person_name || ''} 
+                      onChange={e => setEditing({...editing, person_name: e.target.value})}
+                      className="w-full rounded-xl p-4 text-[var(--admin-text)] text-sm focus:outline-none transition-all"
+                      style={{ background: 'var(--admin-input-bg)', border: '1px solid var(--admin-border)' }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-mono uppercase tracking-widest text-[var(--admin-text-muted)] mb-2">Star Rating</label>
+                    <div className="flex gap-2 p-3 rounded-xl justify-center" style={{ background: 'var(--admin-input-bg)', border: '1px solid var(--admin-border)' }}>
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <button 
+                          key={star} 
+                          onClick={() => setEditing({...editing, star_rating: star})}
+                          className="transition-transform active:scale-90"
+                        >
+                          <Star size={24} className={star <= (editing.star_rating || 0) ? 'text-accent-lime fill-accent-lime' : 'text-[var(--admin-text-muted)]/20'} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-mono uppercase tracking-widest text-[var(--admin-text-muted)] mb-2">Role</label>
+                    <input 
+                      type="text" 
+                      value={editing.person_role || ''} 
+                      onChange={e => setEditing({...editing, person_role: e.target.value})}
+                      className="w-full rounded-xl p-4 text-[var(--admin-text)] text-sm focus:outline-none transition-all"
+                      style={{ background: 'var(--admin-input-bg)', border: '1px solid var(--admin-border)' }}
+                      placeholder="e.g. Project Director"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-mono uppercase tracking-widest text-[var(--admin-text-muted)] mb-2">Company</label>
+                    <input 
+                      type="text" 
+                      value={editing.person_company || ''} 
+                      onChange={e => setEditing({...editing, person_company: e.target.value})}
+                      className="w-full rounded-xl p-4 text-[var(--admin-text)] text-sm focus:outline-none transition-all"
+                      style={{ background: 'var(--admin-input-bg)', border: '1px solid var(--admin-border)' }}
+                      placeholder="e.g. RIMA Nigeria"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-[var(--admin-border)] flex justify-between items-center font-mono text-xs" style={{ backgroundColor: 'color-mix(in srgb, var(--admin-surface), transparent 50%)' }}>
+              <label className="flex items-center gap-2 cursor-pointer text-[var(--admin-text)]">
+                <input type="checkbox" checked={editing.is_published !== false} onChange={e => setEditing({...editing, is_published: e.target.checked})} />
+                MARK_AS_PUBLISHED
+              </label>
+              <div className="flex gap-3">
+                <button onClick={() => setEditing(null)} className="px-6 py-2 rounded-xl text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors">Cancel</button>
+                <button onClick={handleSave} disabled={saving} className="min-w-[140px] flex items-center justify-center gap-2 px-6 py-2 rounded-xl transition-all font-bold" style={{ backgroundColor: 'var(--admin-accent)', color: 'white' }}>
+                  {saving && <Loader2 size={16} className="animate-spin" />}
+                  Save Entry
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
