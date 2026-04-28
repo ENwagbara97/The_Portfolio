@@ -249,7 +249,7 @@ export default function AdminProjects() {
             </div>
 
             {/* Modal Scroll Content */}
-            <div className="flex-1 overflow-y-auto p-8 space-y-12">
+            <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 md:space-y-12">
               
               {/* SECTION: Basic Metadata */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-b border-[var(--admin-border)] pb-12">
@@ -463,13 +463,15 @@ export default function AdminProjects() {
                       placeholder="Brief summary for project cards..."
                     />
                   </div>
-                  <div className="col-span-full">
+                  <div className="col-span-full w-full">
                     <label className="block text-xs font-mono uppercase tracking-widest text-muted mb-4 text-center border-b border-[var(--admin-border)] pb-2">Narrative Case Study Construction</label>
-                    <RichTextEditor 
-                      content={editing.case_study_content}
-                      onChange={(json, html) => setEditing({...editing, case_study_content: json, case_study_html: html})}
-                      slug={editing.slug}
-                    />
+                    <div className="w-full">
+                      <RichTextEditor 
+                        content={editing.case_study_content}
+                        onChange={(json, html) => setEditing({...editing, case_study_content: json, case_study_html: html})}
+                        slug={editing.slug}
+                      />
+                    </div>
                   </div>
                 </div>
                 {/* SECTION: GIS Metadata (Conditional) */}

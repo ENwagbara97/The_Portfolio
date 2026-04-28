@@ -72,7 +72,7 @@ Format as a technical system report. Keep it concise, authoritative, and helpful
       }]);
     } catch (error) {
       console.error('Audit failed:', error);
-      setAuditOutput('Error: Unable to connect to AI Audit node. Ensure ANTHROPIC_API_KEY is configured in Supabase Edge Function secrets.');
+      setAuditOutput('Error: Unable to connect to AI Audit node. Ensure GEMINI_API_KEY is configured in Supabase Edge Function secrets.');
     }
   };
 

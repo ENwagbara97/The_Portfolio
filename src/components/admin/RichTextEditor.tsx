@@ -563,7 +563,7 @@ export default function RichTextEditor({ content, onChange, slug = 'temp' }: Ric
       >
         <EditorContent 
           editor={editor} 
-          className="prose prose-invert max-w-none px-4 py-8 md:p-10 focus:outline-none"
+          className="prose prose-invert max-w-none px-2 py-6 md:p-10 focus:outline-none"
         />
       </div>
 

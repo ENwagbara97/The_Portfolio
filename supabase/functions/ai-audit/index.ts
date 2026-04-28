@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
-// Setup: supabase secrets set ANTHROPIC_API_KEY=your_key
-const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY')
+// Setup: supabase secrets set GEMINI_API_KEY=your_key
+const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
 
 serve(async (req) => {
   // Handle CORS
@@ -17,21 +17,28 @@ serve(async (req) => {
   try {
     const { prompt: userPrompt } = await req.json()
 
-    if (!ANTHROPIC_API_KEY) {
-      throw new Error('ANTHROPIC_API_KEY not set')
+    if (!GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY not set')
     }
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    // Preserve system instructions for Geospatial Audit
+    const systemInstruction = "You are an elite GIS auditor and Senior UX Architect. Analyze project metadata and GIS workflows. Identify critical spatial or design risks and suggest high-impact improvements. Format as a technical system report. Keep it concise, authoritative, and helpful.";
+    
+    const fullPrompt = `${systemInstruction}\n\nUser Input: ${userPrompt}`;
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-3-haiku-20240307',
-        max_tokens: 1024,
-        messages: [{ role: 'user', content: userPrompt }],
+        contents: [{
+          parts: [{ text: fullPrompt }]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 1024,
+        }
       }),
     })
 
@@ -41,7 +48,7 @@ serve(async (req) => {
       throw new Error(data.error.message)
     }
 
-    const text = data.content[0].text
+    const text = data.candidates[0].content.parts[0].text
 
     return new Response(JSON.stringify({ text }), {
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
