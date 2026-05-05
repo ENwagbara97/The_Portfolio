@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import SectionEntrance from '../components/SectionEntrance';
 import GlassCard from '../components/GlassCard';
-import { Send, Terminal, Loader2, MessageSquare, AlertCircle } from 'lucide-react';
+import { Send, Terminal, Loader2, MessageSquare, AlertCircle, ChevronDown } from 'lucide-react';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -188,16 +188,21 @@ Format as a technical system report. Keep it concise, authoritative, and helpful
                 </div>
                 <div>
                   <label className="block text-xs font-mono uppercase tracking-widest text-muted mb-2">Service interest</label>
-                  <select
-                    value={formData.service_interest}
-                    onChange={(e) => setFormData({ ...formData, service_interest: e.target.value })}
-                    className="w-full bg-surface border border-border-default rounded-xl p-4 text-primary focus:border-accent-blue focus:outline-none transition-all appearance-none cursor-pointer"
-                  >
-                    <option>GIS Mapping</option>
-                    <option>UX Design</option>
-                    <option>Spatial Pipeline</option>
-                    <option>Consultation</option>
-                  </select>
+                  <div className="relative group">
+                    <select
+                      value={formData.service_interest}
+                      onChange={(e) => setFormData({ ...formData, service_interest: e.target.value })}
+                      className="w-full bg-surface border border-border-default rounded-xl p-4 text-primary focus:border-accent-blue focus:outline-none transition-all appearance-none cursor-pointer pr-12"
+                    >
+                      <option>GIS Mapping</option>
+                      <option>UX Design</option>
+                      <option>Spatial Pipeline</option>
+                      <option>Consultation</option>
+                    </select>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted group-focus-within:text-accent-blue transition-colors">
+                      <ChevronDown size={20} />
+                    </div>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-xs font-mono uppercase tracking-widest text-muted mb-2">Project Brief</label>
