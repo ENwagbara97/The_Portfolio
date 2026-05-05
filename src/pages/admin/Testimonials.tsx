@@ -166,23 +166,24 @@ export default function AdminTestimonials() {
         </div>
 
         <Reorder.Group axis="y" values={testimonials} onReorder={handleReorder} className="space-y-4">
-          {testimonials.map((t, i) => (
+          {testimonials.map((t) => (
             <Reorder.Item 
               key={t.id} 
               value={t}
               className="relative"
             >
               <GlassCard 
-                className="grid grid-cols-1 md:grid-cols-[40px_80px_1fr_auto] items-start md:items-center gap-4 md:gap-8 p-6 group !bg-[var(--admin-card)] !border-[var(--admin-border)] relative overflow-hidden cursor-default"
+                className="flex flex-col md:flex-row items-center md:items-start gap-6 p-6 group !bg-[var(--admin-card)] !border-[var(--admin-border)] relative cursor-default"
               >
                 {/* Drag Handle */}
-                <div className="flex items-center justify-center text-[var(--admin-text-muted)] cursor-grab active:cursor-grabbing hover:text-[var(--admin-accent)] transition-colors p-2 touch-none">
+                <div className="shrink-0 pt-2 flex items-center justify-center text-[var(--admin-text-muted)] cursor-grab active:cursor-grabbing hover:text-[var(--admin-accent)] transition-colors p-2 touch-none">
                   <GripVertical size={20} />
                 </div>
 
-                {/* Content Main Area */}
-                <div className="flex flex-col md:flex-row items-center md:items-start gap-6 order-1 md:order-2 w-full">
-                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden bg-[var(--admin-input-bg)] border border-[var(--admin-border)] flex-shrink-0 shadow-inner group-hover:border-[var(--admin-accent)]/50 transition-all">
+                {/* Main Content Group */}
+                <div className="flex-1 flex flex-col md:flex-row gap-6 w-full">
+                  {/* Avatar */}
+                  <div className="w-20 h-20 rounded-2xl overflow-hidden bg-[var(--admin-input-bg)] border border-[var(--admin-border)] flex-shrink-0 shadow-inner group-hover:border-[var(--admin-accent)]/50 transition-all mx-auto md:mx-0">
                     {t.avatar_url ? (
                       <img src={t.avatar_url} alt="" className="w-full h-full object-cover" />
                     ) : (
@@ -192,7 +193,8 @@ export default function AdminTestimonials() {
                     )}
                   </div>
 
-                  <div className="flex-1 min-w-0 space-y-2 text-center md:text-left">
+                  {/* Text Content */}
+                  <div className="flex-1 space-y-2 text-center md:text-left min-w-0">
                     <div className="flex flex-col md:flex-row items-center gap-3">
                       <h3 className="text-lg font-display font-bold text-[var(--admin-text)] truncate">{t.person_name}</h3>
                       <div className="flex gap-0.5">
@@ -216,12 +218,12 @@ export default function AdminTestimonials() {
                 </div>
 
                 {/* Actions Area */}
-                <div className="flex items-center justify-between md:flex-col md:justify-center gap-4 w-full md:w-40 md:border-l md:border-[var(--admin-border)] md:pl-8">
+                <div className="shrink-0 flex md:flex-col items-center gap-4 pt-2 md:pl-6 md:border-l md:border-[var(--admin-border)] w-full md:w-auto justify-center">
                   <button 
                     onClick={() => togglePublished(t.id, t.is_published)}
                     className={`text-[10px] font-mono px-4 py-1.5 rounded-full border transition-all font-bold tracking-wider ${
                       t.is_published 
-                        ? 'bg-green-500/10 border-green-500/20 text-green-500 shadow-[0_0_15px_rgba(34,197,94,0.1)]' 
+                        ? 'bg-green-500/10 border-green-500/20 text-green-500' 
                         : 'bg-[var(--admin-input-bg)] text-[var(--admin-text-muted)] border-[var(--admin-border)]'
                     }`}
                   >
@@ -235,14 +237,14 @@ export default function AdminTestimonials() {
                         setAvatarPreview(null);
                         setEditing(t);
                       }} 
-                      className="p-3 rounded-xl bg-[var(--admin-input-bg)] border border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:border-[var(--admin-accent)] transition-all shadow-sm"
+                      className="p-2.5 rounded-xl bg-[var(--admin-input-bg)] border border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:border-[var(--admin-accent)] transition-all shadow-sm"
                       title="Edit Testimonial"
                     >
                       <Edit3 size={18} />
                     </button>
                     <button 
                       onClick={() => deleteTestimonial(t.id)} 
-                      className="p-3 rounded-xl bg-red-500/5 border border-red-500/10 text-[var(--admin-text-muted)] hover:text-red-400 hover:border-red-500/30 transition-all shadow-sm"
+                      className="p-2.5 rounded-xl bg-red-500/5 border border-red-500/10 text-[var(--admin-text-muted)] hover:text-red-400 hover:border-red-500/30 transition-all shadow-sm"
                       title="Delete Testimonial"
                     >
                       <Trash2 size={18} />
