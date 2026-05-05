@@ -55,41 +55,27 @@ function SignupContent() {
 
   return (
     <div id="admin-root" className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-[var(--admin-bg)] text-[var(--admin-text)] transition-colors duration-300">
-      {/* Dynamic Background Elements */}
-      <motion.div 
-        animate={{ 
-          scale: [1, 1.2, 1],
-          opacity: [0.3, 0.5, 0.3]
-        }}
-        transition={{ duration: 8, repeat: Infinity }}
-        className="absolute top-0 right-0 -mr-40 -mt-40 w-[500px] h-[500px] bg-accent-blue/10 rounded-full blur-[120px]" 
-      />
-      <motion.div 
-        animate={{ 
-          scale: [1, 1.1, 1],
-          opacity: [0.2, 0.4, 0.2]
-        }}
-        transition={{ duration: 10, repeat: Infinity, delay: 1 }}
-        className="absolute bottom-0 left-0 -ml-40 -mb-40 w-[400px] h-[400px] bg-accent-lime/10 rounded-full blur-[100px]" 
-      />
+      {/* Dynamic Background Elements - matched to Login.tsx for consistency */}
+      <div className="absolute top-0 right-0 -mr-40 -mt-40 w-96 h-96 bg-[var(--admin-accent)]/10 rounded-full blur-[100px] animate-pulse" />
+      <div className="absolute bottom-0 left-0 -ml-40 -mb-40 w-96 h-96 bg-[var(--admin-accent)]/5 rounded-full blur-[100px]" />
 
-      <div className="w-full max-w-lg relative z-10 space-y-8">
+      <div className="w-full max-w-md relative z-10 space-y-8">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center space-y-4"
         >
-          <div className="w-20 h-20 mx-auto rounded-[2.5rem] flex items-center justify-center bg-gradient-to-br from-accent-blue/20 to-accent-lime/20 border border-white/10 shadow-2xl backdrop-blur-xl">
+          <div className="w-20 h-20 mx-auto rounded-[2.5rem] flex items-center justify-center bg-gradient-to-br from-[var(--admin-accent)]/10 to-[var(--admin-accent)]/5 border border-[var(--admin-border)] shadow-2xl backdrop-blur-xl">
             <UserPlus className="text-[var(--admin-accent)]" size={32} />
           </div>
           <div>
-            <h1 className="text-4xl font-display tracking-tight text-[var(--admin-text)]">Join the Collective</h1>
-            <p className="text-sm mt-2 font-mono text-[var(--admin-text-muted)] uppercase tracking-widest">System_Access_Provisioning</p>
+            <h1 className="text-4xl font-display text-[var(--admin-text)] tracking-tight">Admin Terminal</h1>
+            <p className="text-[10px] mt-2 font-mono text-[var(--admin-text-muted)] uppercase tracking-[0.3em]">PROVISION_NEW_NODE</p>
           </div>
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
+          initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1 }}
         >
@@ -97,22 +83,22 @@ function SignupContent() {
             {/* Success State */}
             {success ? (
               <div className="text-center space-y-6 py-4">
-                <div className="w-16 h-16 bg-accent-lime/20 text-accent-lime rounded-full flex items-center justify-center mx-auto animate-bounce">
+                <div className="w-16 h-16 bg-green-500/10 text-green-500 border border-green-500/20 rounded-full flex items-center justify-center mx-auto animate-in zoom-in duration-500">
                   <ShieldCheck size={32} />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-xl font-bold text-primary">Provisioning Request Sent</h3>
-                  <p className="text-sm text-secondary leading-relaxed">
-                    Check your inbox to confirm your digital identity. <br/>
-                    Redirecting to the bridge in 5 seconds...
+                  <h3 className="text-xl font-bold text-[var(--admin-text)]">Clearance Granted</h3>
+                  <p className="text-xs text-[var(--admin-text-muted)] leading-relaxed font-mono">
+                    Identity registered. Check your inbox. <br/><br/>
+                    <span className="text-[10px] uppercase tracking-widest text-[var(--admin-accent)] animate-pulse">Redirecting to bridge...</span>
                   </p>
                 </div>
-                <div className="h-1 w-full bg-border-default rounded-full overflow-hidden">
+                <div className="h-1 w-full bg-[var(--admin-border)] rounded-full overflow-hidden mt-8">
                   <motion.div 
                     initial={{ width: 0 }}
                     animate={{ width: '100%' }}
                     transition={{ duration: 5, ease: "linear" }}
-                    className="h-full bg-accent-lime"
+                    className="h-full bg-green-500"
                   />
                 </div>
               </div>
@@ -122,7 +108,7 @@ function SignupContent() {
                   <motion.div 
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs flex items-center gap-3 font-mono"
+                    className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-[10px] font-mono flex items-center gap-3"
                   >
                     <AlertCircle size={16} />
                     {error.toUpperCase()}
@@ -130,74 +116,66 @@ function SignupContent() {
                 )}
 
                 <div className="space-y-4">
-                  <div className="relative group">
-                    <label className="block text-[10px] font-mono uppercase tracking-widest mb-2 text-[var(--admin-text-muted)] group-focus-within:text-[var(--admin-accent)] transition-colors">
-                      Digital Identity (Email)
+                  <div>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest mb-2 text-[var(--admin-text-muted)] px-1">
+                      Credential_ID (Email)
                     </label>
-                    <div className="relative">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] group-focus-within:text-[var(--admin-accent)] transition-colors" size={18} />
-                      <input
-                        type="email"
-                        value={email}
-                        onChange={e => setEmail(e.target.value)}
-                        required
-                        className="w-full rounded-2xl p-4 pl-12 focus:outline-none transition-all bg-[var(--admin-input-bg)] border border-[var(--admin-border)] text-[var(--admin-text)] focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)]/20"
-                        placeholder="admin@system.local"
-                      />
-                    </div>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      required
+                      autoFocus
+                      className="w-full rounded-2xl p-4 focus:outline-none transition-all bg-[var(--admin-input-bg)] border border-[var(--admin-border)] text-[var(--admin-text)] focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)]/20"
+                      placeholder="admin@system.local"
+                    />
                   </div>
 
-                  <div className="relative group">
-                    <label className="block text-[10px] font-mono uppercase tracking-widest mb-2 text-[var(--admin-text-muted)] group-focus-within:text-[var(--admin-accent)] transition-colors">
-                      Master Passphrase
+                  <div>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest mb-2 text-[var(--admin-text-muted)] px-1">
+                      Security_Key (Passphrase)
                     </label>
-                    <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] group-focus-within:text-[var(--admin-accent)] transition-colors" size={18} />
-                      <input
-                        type="password"
-                        value={password}
-                        onChange={e => setPassword(e.target.value)}
-                        required
-                        className="w-full rounded-2xl p-4 pl-12 focus:outline-none transition-all bg-[var(--admin-input-bg)] border border-[var(--admin-border)] text-[var(--admin-text)] focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)]/20"
-                        placeholder="••••••••••••"
-                      />
-                    </div>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      required
+                      className="w-full rounded-2xl p-4 focus:outline-none transition-all bg-[var(--admin-input-bg)] border border-[var(--admin-border)] text-[var(--admin-text)] focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)]/20"
+                      placeholder="••••••••••••"
+                    />
                   </div>
 
-                  <div className="relative group">
-                    <label className="block text-[10px] font-mono uppercase tracking-widest mb-2 text-[var(--admin-text-muted)] group-focus-within:text-[var(--admin-accent)] transition-colors">
-                      Confirm Passphrase
+                  <div>
+                    <label className="block text-[10px] font-mono uppercase tracking-widest mb-2 text-[var(--admin-text-muted)] px-1">
+                      Verify_Security_Key
                     </label>
-                    <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] group-focus-within:text-[var(--admin-accent)] transition-colors" size={18} />
-                      <input
-                        type="password"
-                        value={confirmPassword}
-                        onChange={e => setConfirmPassword(e.target.value)}
-                        required
-                        className="w-full rounded-2xl p-4 pl-12 focus:outline-none transition-all bg-[var(--admin-input-bg)] border border-[var(--admin-border)] text-[var(--admin-text)] focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)]/20"
-                        placeholder="••••••••••••"
-                      />
-                    </div>
+                    <input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={e => setConfirmPassword(e.target.value)}
+                      required
+                      className="w-full rounded-2xl p-4 focus:outline-none transition-all bg-[var(--admin-input-bg)] border border-[var(--admin-border)] text-[var(--admin-text)] focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)]/20"
+                      placeholder="••••••••••••"
+                    />
                   </div>
                 </div>
 
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full justify-center py-4 text-sm font-bold rounded-2xl transition-all flex items-center bg-[var(--admin-accent)] text-white hover:shadow-[0_0_20px_rgba(37,99,235,0.3)] active:scale-[0.98] disabled:opacity-50"
+                  className="w-full justify-center py-4 text-sm font-bold rounded-2xl transition-all flex items-center bg-[var(--admin-accent)] text-white hover:shadow-[0_0_25px_rgba(37,99,235,0.3)] active:scale-[0.98] disabled:opacity-50 mt-8"
                 >
                   {submitting ? (
                     <>
                       <Loader2 className="animate-spin mr-2" size={18} />
-                      PROVISIONING_USER...
+                      PROVISIONING...
                     </>
                   ) : (
                     'INITIALIZE_ACCOUNT'
                   )}
                 </button>
 
-                <div className="text-center pt-2">
+                <div className="text-center pt-4">
                   <p className="text-xs text-[var(--admin-text-muted)]">
                     Already authenticated? {' '}
                     <Link to="/console/login" className="text-[var(--admin-accent)] font-bold hover:underline">
