@@ -5,6 +5,7 @@ import { AdminThemeProvider } from '../../context/AdminThemeContext';
 import GlassCard from '../../components/GlassCard';
 import { Lock, Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 function LoginContent() {
   const { user, loading, signIn } = useAuth();
