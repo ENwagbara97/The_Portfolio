@@ -5,7 +5,8 @@ import { supabase } from '../../lib/supabase';
 import { Project } from '../../lib/types';
 import GlassCard from '../../components/GlassCard';
 import Badge from '../../components/Badge';
-import { Trash2, Edit3, X, Image, FileText, Globe, Plus, ChevronUp, ChevronDown, Check, Loader2, ArrowLeft } from 'lucide-react';
+import { Reorder } from 'framer-motion';
+import { GripVertical, Trash2, Edit3, X, Image, FileText, Globe, Plus, ChevronUp, ChevronDown, Check, Loader2, ArrowLeft } from 'lucide-react';
 import RichTextEditor from '../../components/admin/RichTextEditor';
 
 export default function AdminProjects() {
@@ -122,6 +123,21 @@ export default function AdminProjects() {
     loadProjects();
   }
 
+  async function handleReorder(newOrder: Project[]) {
+    setProjects(newOrder);
+    
+    // Update display_order for all projects in a batch
+    const updates = newOrder.map((p, index) => ({
+      id: p.id,
+      display_order: index
+    }));
+
+    // Perform individual updates for now (Supabase doesn't support easy batch update by ID without RPC)
+    for (const update of updates) {
+      await supabase.from('projects').update({ display_order: update.display_order }).eq('id', update.id);
+    }
+  }
+
   async function toggleStatus(id: string, field: 'is_featured' | 'is_active', current: boolean) {
     await supabase.from('projects').update({ [field]: !current }).eq('id', id);
     loadProjects();
@@ -163,69 +179,68 @@ export default function AdminProjects() {
         </div>
 
         {/* Project List */}
-        <div className="space-y-3">
-          {projects.map((proj, i) => (
-            <GlassCard key={proj.id} className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6 p-4 md:p-5 group !bg-[var(--admin-card)] !border-[var(--admin-border)] relative cursor-pointer md:cursor-default" onClick={(e) => {
-              if (window.innerWidth < 768) setEditing(proj);
-            }}>
-              <div className="flex md:flex-col items-center gap-3 md:gap-1 order-3 md:order-1 w-full md:w-auto border-t md:border-none pt-4 md:pt-0 mt-1 md:mt-0" onClick={e => e.stopPropagation()}>
-                <button onClick={() => updateOrder(proj.id, proj.display_order, 'up')} className="text-[var(--admin-text-muted)] hover:text-[var(--admin-accent)] transition-colors disabled:opacity-0" disabled={i === 0}>
-                  <ChevronUp size={16} />
-                </button>
-                <span className="text-[10px] font-mono text-[var(--admin-text-muted)] px-2">{proj.display_order}</span>
-                <button onClick={() => updateOrder(proj.id, proj.display_order, 'down')} className="text-[var(--admin-text-muted)] hover:text-[var(--admin-accent)] transition-colors disabled:opacity-0" disabled={i === projects.length - 1}>
-                  <ChevronDown size={16} />
-                </button>
-              </div>
-              
-              <div className="flex items-center gap-4 md:gap-6 w-full order-1 md:order-2">
-                <div className="w-20 h-14 md:w-24 md:h-16 rounded-lg overflow-hidden bg-[var(--admin-input-bg)] border border-[var(--admin-border)] flex-shrink-0 flex items-center justify-center">
-                  {proj.cover_image_url ? (
-                    <img src={proj.cover_image_url} alt="" className="w-full h-full object-contain" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-[var(--admin-text-muted)]"><Image size={24} /></div>
-                  )}
+        <Reorder.Group axis="y" values={projects} onReorder={handleReorder} className="space-y-3">
+          {projects.map((proj) => (
+            <Reorder.Item 
+              key={proj.id} 
+              value={proj}
+              className="relative"
+            >
+              <GlassCard className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6 p-4 md:p-5 group !bg-[var(--admin-card)] !border-[var(--admin-border)] relative cursor-default">
+                {/* Drag Handle */}
+                <div className="hidden md:flex items-center justify-center text-[var(--admin-text-muted)] cursor-grab active:cursor-grabbing hover:text-[var(--admin-accent)] transition-colors p-1">
+                  <GripVertical size={20} />
                 </div>
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-heading font-bold text-[var(--admin-text)] truncate max-w-[150px] md:max-w-none">{proj.title}</h3>
-                    <span className={`text-[9px] md:text-[10px] px-2 py-0.5 rounded border border-[var(--admin-accent)]/20 uppercase font-mono ${
-                      proj.type === 'GIS' ? 'text-accent-lime' : proj.type === 'UX' ? 'text-accent-blue' : 'text-purple-400'
-                    }`}>
-                      {proj.type}
-                    </span>
+                <div className="flex items-center gap-4 md:gap-6 w-full order-1 md:order-2">
+                  <div className="w-20 h-14 md:w-24 md:h-16 rounded-lg overflow-hidden bg-[var(--admin-input-bg)] border border-[var(--admin-border)] flex-shrink-0 flex items-center justify-center">
+                    {proj.cover_image_url ? (
+                      <img src={proj.cover_image_url} alt="" className="w-full h-full object-contain" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[var(--admin-text-muted)]"><Image size={24} /></div>
+                    )}
                   </div>
-                  <p className="text-[10px] md:text-xs text-[var(--admin-text-muted)] font-mono truncate">/projects/{proj.slug}</p>
-                </div>
-              </div>
 
-              <div className="flex items-center justify-between md:justify-end gap-6 w-full md:w-auto order-2 md:order-3 md:ml-auto" onClick={e => e.stopPropagation()}>
-                <div className="flex items-center gap-4 md:gap-6 text-[10px] md:text-xs font-mono">
-                  <button onClick={() => toggleStatus(proj.id, 'is_featured', proj.is_featured)} className={`flex items-center gap-1 transition-colors ${proj.is_featured ? 'text-accent-lime' : 'text-[var(--admin-text-muted)]'}`}>
-                    <Check size={14} className={proj.is_featured ? 'opacity-100' : 'opacity-20'} />
-                    <span className="hidden sm:inline">Featured</span>
-                    <span className="sm:hidden">★</span>
-                  </button>
-                  <button onClick={() => toggleStatus(proj.id, 'is_active', proj.is_active)} className={`flex items-center gap-1 transition-colors ${proj.is_active ? 'text-accent-blue' : 'text-[var(--admin-text-muted)]'}`}>
-                    <Check size={14} className={proj.is_active ? 'opacity-100' : 'opacity-20'} />
-                    <span className="hidden sm:inline">Active</span>
-                    <span className="sm:hidden">⚡</span>
-                  </button>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-heading font-bold text-[var(--admin-text)] truncate max-w-[150px] md:max-w-none">{proj.title}</h3>
+                      <span className={`text-[9px] md:text-[10px] px-2 py-0.5 rounded border border-[var(--admin-accent)]/20 uppercase font-mono ${
+                        proj.type === 'GIS' ? 'text-accent-lime' : proj.type === 'UX' ? 'text-accent-blue' : 'text-purple-400'
+                      }`}>
+                        {proj.type}
+                      </span>
+                    </div>
+                    <p className="text-[10px] md:text-xs text-[var(--admin-text-muted)] font-mono truncate">/projects/{proj.slug}</p>
+                  </div>
                 </div>
-                
-                <div className="flex gap-1">
-                  <button onClick={() => setEditing(proj)} className="p-2.5 rounded-xl bg-[var(--admin-input-bg)] md:bg-transparent border border-[var(--admin-border)] md:border-none text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors">
-                    <Edit3 size={18} />
-                  </button>
-                  <button onClick={() => deleteProject(proj.id)} className="p-2.5 rounded-xl bg-red-500/5 md:bg-transparent border border-red-500/10 md:border-none text-[var(--admin-text-muted)] hover:text-red-400 transition-colors">
-                    <Trash2 size={18} />
-                  </button>
+
+                <div className="flex items-center justify-between md:justify-end gap-6 w-full md:w-auto order-2 md:order-3 md:ml-auto">
+                  <div className="flex items-center gap-4 md:gap-6 text-[10px] md:text-xs font-mono">
+                    <button onClick={() => toggleStatus(proj.id, 'is_featured', proj.is_featured)} className={`flex items-center gap-1 transition-colors ${proj.is_featured ? 'text-accent-lime' : 'text-[var(--admin-text-muted)]'}`}>
+                      <Check size={14} className={proj.is_featured ? 'opacity-100' : 'opacity-20'} />
+                      <span className="hidden sm:inline">Featured</span>
+                      <span className="sm:hidden">★</span>
+                    </button>
+                    <button onClick={() => toggleStatus(proj.id, 'is_active', proj.is_active)} className={`flex items-center gap-1 transition-colors ${proj.is_active ? 'text-accent-blue' : 'text-[var(--admin-text-muted)]'}`}>
+                      <Check size={14} className={proj.is_active ? 'opacity-100' : 'opacity-20'} />
+                      <span className="hidden sm:inline">Active</span>
+                      <span className="sm:hidden">⚡</span>
+                    </button>
+                  </div>
+                  
+                  <div className="flex gap-1">
+                    <button onClick={() => setEditing(proj)} className="p-2.5 rounded-xl bg-[var(--admin-input-bg)] md:bg-transparent border border-[var(--admin-border)] md:border-none text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors">
+                      <Edit3 size={18} />
+                    </button>
+                    <button onClick={() => deleteProject(proj.id)} className="p-2.5 rounded-xl bg-red-500/5 md:bg-transparent border border-red-500/10 md:border-none text-[var(--admin-text-muted)] hover:text-red-400 transition-colors">
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </GlassCard>
+              </GlassCard>
+            </Reorder.Item>
           ))}
-        </div>
+        </Reorder.Group>
       </div>
 
       {/* Full Edit Modal */}

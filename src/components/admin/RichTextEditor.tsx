@@ -181,8 +181,9 @@ const Badge = ({ label, className }: { label: string; className?: string }) => (
 export default function RichTextEditor({ content, onChange, slug = 'temp' }: RichTextEditorProps) {
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showHighlightPicker, setShowHighlightPicker] = useState(false);
-  const [mediaModal, setMediaModal] = useState<{ type: 'image' | 'video' | 'figma', isOpen: boolean }>({ type: 'image', isOpen: false });
+  const [mediaModal, setMediaModal] = useState<{ type: 'image' | 'video' | 'figma' | 'link', isOpen: boolean }>({ type: 'image', isOpen: false });
   const [mediaUrl, setMediaUrl] = useState('');
+  const [linkText, setLinkText] = useState('');
   const [uploading, setUploading] = useState(false);
 
   const editor = useEditor({
@@ -281,9 +282,16 @@ export default function RichTextEditor({ content, onChange, slug = 'temp' }: Ric
         type: 'figma',
         attrs: { src: finalSrc }
       }).run();
+    } else if (type === 'link') {
+      if (linkText) {
+        editor.chain().focus().insertContent(`<a href="${mediaUrl}" target="_blank">${linkText}</a>`).run();
+      } else {
+        editor.chain().focus().extendMarkRange('link').setLink({ href: mediaUrl }).run();
+      }
     }
 
     setMediaUrl('');
+    setLinkText('');
     setMediaModal({ ...mediaModal, isOpen: false });
   };
 
@@ -490,13 +498,9 @@ export default function RichTextEditor({ content, onChange, slug = 'temp' }: Ric
           <ToolbarButton 
             onClick={() => {
               const previousUrl = editor?.getAttributes('link').href;
-              const url = window.prompt('URL', previousUrl);
-              if (url === null) return;
-              if (url === '') {
-                editor?.chain().focus().extendMarkRange('link').unsetLink().run();
-                return;
-              }
-              editor?.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+              setMediaUrl(previousUrl || '');
+              setLinkText(editor.state.doc.textBetween(editor.state.selection.from, editor.state.selection.to));
+              setMediaModal({ type: 'link', isOpen: true });
             }}
             isActive={editor.isActive('link')}
             title="Insert Link"
@@ -579,9 +583,9 @@ export default function RichTextEditor({ content, onChange, slug = 'temp' }: Ric
             <div className="p-6 border-b border-[var(--admin-border)] flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-[#2563EB]/10 rounded-lg text-[#2563EB]">
-                  {mediaModal.type === 'image' ? <ImageIcon size={20} /> : mediaModal.type === 'video' ? <Film size={20} /> : <Layout size={20} />}
+                  {mediaModal.type === 'image' ? <ImageIcon size={20} /> : mediaModal.type === 'video' ? <Film size={20} /> : mediaModal.type === 'figma' ? <Layout size={20} /> : <LinkIcon size={20} />}
                 </div>
-                <h3 className="font-display text-lg">Insert {mediaModal.type}</h3>
+                <h3 className="font-display text-lg">Insert {mediaModal.type === 'link' ? 'Hyperlink' : mediaModal.type}</h3>
               </div>
               <button onClick={() => setMediaModal({ ...mediaModal, isOpen: false })} className="text-[var(--admin-text-muted)] hover:text-white">
                 <X size={20} />
@@ -589,7 +593,7 @@ export default function RichTextEditor({ content, onChange, slug = 'temp' }: Ric
             </div>
 
             <div className="p-6 space-y-6">
-              {mediaModal.type !== 'figma' && (
+              {mediaModal.type !== 'figma' && mediaModal.type !== 'link' && (
                 <div className="space-y-3">
                   <label className="block text-xs font-mono uppercase tracking-widest text-[var(--admin-text-muted)]">Upload File</label>
                   <label className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-[var(--admin-border)] rounded-xl hover:bg-[#2563EB]/5 cursor-pointer transition-colors group">
@@ -600,28 +604,46 @@ export default function RichTextEditor({ content, onChange, slug = 'temp' }: Ric
                 </div>
               )}
 
-              <div className="space-y-3">
-                <label className="block text-xs font-mono uppercase tracking-widest text-[var(--admin-text-muted)]">
-                  {mediaModal.type === 'figma' ? 'Figma Embed URL' : 'Or Paste URL'}
-                </label>
-                <div className="flex gap-2">
-                  <input 
-                    type="text" 
-                    value={mediaUrl}
-                    onChange={e => setMediaUrl(e.target.value)}
-                    placeholder={mediaModal.type === 'figma' ? 'Paste Figma embed src...' : 'https://...'}
-                    className="flex-1 bg-[var(--admin-input-bg)] border border-[var(--admin-border)] rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-[#2563EB]"
-                  />
-                  <button 
-                    onClick={insertFromUrl}
-                    className="bg-[#2563EB] text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-                  >
-                    Insert
-                  </button>
-                </div>
-                {mediaModal.type === 'figma' && (
-                   <p className="text-[10px] text-[var(--admin-text-muted)]">Share → Get embed code → Copy the src URL</p>
+              <div className="space-y-4">
+                {mediaModal.type === 'link' && (
+                  <div className="space-y-3">
+                    <label className="block text-xs font-mono uppercase tracking-widest text-[var(--admin-text-muted)]">Link Text (Optional)</label>
+                    <input 
+                      type="text" 
+                      value={linkText}
+                      onChange={e => setLinkText(e.target.value)}
+                      placeholder="e.g. Visit Website"
+                      className="w-full bg-[var(--admin-input-bg)] border border-[var(--admin-border)] rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-[#2563EB]"
+                    />
+                  </div>
                 )}
+
+                <div className="space-y-3">
+                  <label className="block text-xs font-mono uppercase tracking-widest text-[var(--admin-text-muted)]">
+                    {mediaModal.type === 'figma' ? 'Figma Embed URL' : mediaModal.type === 'link' ? 'Target URL' : 'Or Paste URL'}
+                  </label>
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      value={mediaUrl}
+                      onChange={e => setMediaUrl(e.target.value)}
+                      placeholder={mediaModal.type === 'figma' ? 'Paste Figma embed src...' : 'https://...'}
+                      className="flex-1 bg-[var(--admin-input-bg)] border border-[var(--admin-border)] rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-[#2563EB]"
+                    />
+                    <button 
+                      onClick={insertFromUrl}
+                      className="bg-[#2563EB] text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                    >
+                      Insert
+                    </button>
+                  </div>
+                  {mediaModal.type === 'figma' && (
+                    <p className="text-[10px] text-[var(--admin-text-muted)]">Share → Get embed code → Copy the src URL</p>
+                  )}
+                  {mediaModal.type === 'link' && (
+                    <p className="text-[10px] text-[var(--admin-text-muted)]">Enter the full destination URL including https://</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>

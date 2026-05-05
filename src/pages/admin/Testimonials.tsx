@@ -3,7 +3,8 @@ import { Navigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { supabase, Testimonial } from '../../lib/supabase';
 import GlassCard from '../../components/GlassCard';
-import { Trash2, Edit3, X, User, Star, Plus, Loader2, ChevronUp, ChevronDown, UserCircle, Pencil } from 'lucide-react';
+import { Reorder } from 'framer-motion';
+import { GripVertical, Trash2, Edit3, X, User, Star, Plus, Loader2, ChevronUp, ChevronDown, UserCircle, Pencil } from 'lucide-react';
 
 export default function AdminTestimonials() {
   const { user, loading: authLoading } = useAuth();
@@ -118,6 +119,18 @@ export default function AdminTestimonials() {
     loadTestimonials();
   }
 
+  async function handleReorder(newOrder: Testimonial[]) {
+    setTestimonials(newOrder);
+    const updates = newOrder.map((t, index) => ({
+      id: t.id,
+      display_order: index
+    }));
+
+    for (const update of updates) {
+      await supabase.from('testimonials').update({ display_order: update.display_order }).eq('id', update.id);
+    }
+  }
+
   if (authLoading) return <div className="min-h-screen flex items-center justify-center font-mono text-muted">/ loading_testimonials...</div>;
   if (!user) return <Navigate to="/" />;
 
@@ -152,103 +165,94 @@ export default function AdminTestimonials() {
           </button>
         </div>
 
-        <div className="space-y-4">
+        <Reorder.Group axis="y" values={testimonials} onReorder={handleReorder} className="space-y-4">
           {testimonials.map((t, i) => (
-            <GlassCard 
+            <Reorder.Item 
               key={t.id} 
-              className="grid grid-cols-1 md:grid-cols-[80px_1fr_auto] items-start md:items-center gap-4 md:gap-8 p-6 group !bg-[var(--admin-card)] !border-[var(--admin-border)] relative overflow-hidden"
+              value={t}
+              className="relative"
             >
-              {/* Order Controls */}
-              <div className="flex md:flex-col items-center justify-center gap-2 md:gap-1 order-3 md:order-1 h-full border-t md:border-none pt-4 md:pt-0 mt-2 md:mt-0 bg-[var(--admin-input-bg)]/30 md:bg-transparent rounded-lg">
-                <button 
-                  onClick={() => updateOrder(t.id, t.display_order, 'up')} 
-                  className="text-[var(--admin-text-muted)] hover:text-[var(--admin-accent)] transition-colors disabled:opacity-0" 
-                  disabled={i === 0}
-                >
-                  <ChevronUp size={20} />
-                </button>
-                <span className="text-xs font-mono font-bold text-[var(--admin-text-muted)]">{i + 1}</span>
-                <button 
-                  onClick={() => updateOrder(t.id, t.display_order, 'down')} 
-                  className="text-[var(--admin-text-muted)] hover:text-[var(--admin-accent)] transition-colors disabled:opacity-0" 
-                  disabled={i === testimonials.length - 1}
-                >
-                  <ChevronDown size={20} />
-                </button>
-              </div>
-
-              {/* Content Main Area */}
-              <div className="flex flex-col md:flex-row items-center md:items-start gap-6 order-1 md:order-2 w-full">
-                <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden bg-[var(--admin-input-bg)] border border-[var(--admin-border)] flex-shrink-0 shadow-inner group-hover:border-[var(--admin-accent)]/50 transition-all">
-                  {t.avatar_url ? (
-                    <img src={t.avatar_url} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-[var(--admin-text-muted)]" style={{ backgroundColor: 'color-mix(in srgb, var(--admin-accent), transparent 95%)' }}>
-                      <User size={32} />
-                    </div>
-                  )}
+              <GlassCard 
+                className="grid grid-cols-1 md:grid-cols-[40px_80px_1fr_auto] items-start md:items-center gap-4 md:gap-8 p-6 group !bg-[var(--admin-card)] !border-[var(--admin-border)] relative overflow-hidden cursor-default"
+              >
+                {/* Drag Handle */}
+                <div className="hidden md:flex items-center justify-center text-[var(--admin-text-muted)] cursor-grab active:cursor-grabbing hover:text-[var(--admin-accent)] transition-colors">
+                  <GripVertical size={20} />
                 </div>
 
-                <div className="flex-1 min-w-0 space-y-2 text-center md:text-left">
-                  <div className="flex flex-col md:flex-row items-center gap-3">
-                    <h3 className="text-lg font-display font-bold text-[var(--admin-text)] truncate">{t.person_name}</h3>
-                    <div className="flex gap-0.5">
-                      {[...Array(5)].map((_, idx) => (
-                        <Star 
-                          key={idx} 
-                          size={14} 
-                          className={idx < t.star_rating ? 'fill-[var(--accent-lime)] text-[var(--accent-lime)]' : 'text-[var(--admin-text-muted)]/20'} 
-                          style={idx < t.star_rating ? { fill: 'var(--accent-lime)', color: 'var(--accent-lime)' } : {}}
-                        />
-                      ))}
+                {/* Content Main Area */}
+                <div className="flex flex-col md:flex-row items-center md:items-start gap-6 order-1 md:order-2 w-full">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden bg-[var(--admin-input-bg)] border border-[var(--admin-border)] flex-shrink-0 shadow-inner group-hover:border-[var(--admin-accent)]/50 transition-all">
+                    {t.avatar_url ? (
+                      <img src={t.avatar_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[var(--admin-text-muted)]" style={{ backgroundColor: 'color-mix(in srgb, var(--admin-accent), transparent 95%)' }}>
+                        <User size={32} />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0 space-y-2 text-center md:text-left">
+                    <div className="flex flex-col md:flex-row items-center gap-3">
+                      <h3 className="text-lg font-display font-bold text-[var(--admin-text)] truncate">{t.person_name}</h3>
+                      <div className="flex gap-0.5">
+                        {[...Array(5)].map((_, idx) => (
+                          <Star 
+                            key={idx} 
+                            size={14} 
+                            className={idx < t.star_rating ? 'fill-[var(--accent-lime)] text-[var(--accent-lime)]' : 'text-[var(--admin-text-muted)]/20'} 
+                            style={idx < t.star_rating ? { fill: 'var(--accent-lime)', color: 'var(--accent-lime)' } : {}}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-sm text-[var(--admin-text-muted)] italic leading-relaxed">"{t.quote_text}"</p>
+                    <div className="flex items-center justify-center md:justify-start gap-2 text-xs font-mono" style={{ color: 'var(--admin-accent)' }}>
+                      <span className="font-bold">{t.person_role}</span>
+                      <span className="opacity-40">@</span>
+                      <span>{t.person_company}</span>
                     </div>
                   </div>
-                  <p className="text-sm text-[var(--admin-text-muted)] italic leading-relaxed">"{t.quote_text}"</p>
-                  <div className="flex items-center justify-center md:justify-start gap-2 text-xs font-mono" style={{ color: 'var(--admin-accent)' }}>
-                    <span className="font-bold">{t.person_role}</span>
-                    <span className="opacity-40">@</span>
-                    <span>{t.person_company}</span>
+                </div>
+
+                {/* Actions Area */}
+                <div className="flex items-center justify-between md:flex-col md:justify-center gap-4 w-full md:w-40 md:border-l md:border-[var(--admin-border)] md:pl-8">
+                  <button 
+                    onClick={() => togglePublished(t.id, t.is_published)}
+                    className={`text-[10px] font-mono px-4 py-1.5 rounded-full border transition-all font-bold tracking-wider ${
+                      t.is_published 
+                        ? 'bg-green-500/10 border-green-500/20 text-green-500 shadow-[0_0_15px_rgba(34,197,94,0.1)]' 
+                        : 'bg-[var(--admin-input-bg)] text-[var(--admin-text-muted)] border-[var(--admin-border)]'
+                    }`}
+                  >
+                    {t.is_published ? 'PUBLISHED' : 'DRAFT'}
+                  </button>
+                  
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => {
+                        setAvatarFile(null);
+                        setAvatarPreview(null);
+                        setEditing(t);
+                      }} 
+                      className="p-3 rounded-xl bg-[var(--admin-input-bg)] border border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:border-[var(--admin-accent)] transition-all shadow-sm"
+                      title="Edit Testimonial"
+                    >
+                      <Edit3 size={18} />
+                    </button>
+                    <button 
+                      onClick={() => deleteTestimonial(t.id)} 
+                      className="p-3 rounded-xl bg-red-500/5 border border-red-500/10 text-[var(--admin-text-muted)] hover:text-red-400 hover:border-red-500/30 transition-all shadow-sm"
+                      title="Delete Testimonial"
+                    >
+                      <Trash2 size={18} />
+                    </button>
                   </div>
                 </div>
-              </div>
-
-              {/* Actions Area */}
-              <div className="flex items-center justify-between md:flex-col md:justify-center gap-4 w-full md:w-40 order-2 md:order-3 md:border-l md:border-[var(--admin-border)] md:pl-8">
-                <button 
-                  onClick={() => togglePublished(t.id, t.is_published)}
-                  className={`text-[10px] font-mono px-4 py-1.5 rounded-full border transition-all font-bold tracking-wider ${
-                    t.is_published 
-                      ? 'bg-green-500/10 border-green-500/20 text-green-500 shadow-[0_0_15px_rgba(34,197,94,0.1)]' 
-                      : 'bg-[var(--admin-input-bg)] text-[var(--admin-text-muted)] border-[var(--admin-border)]'
-                  }`}
-                >
-                  {t.is_published ? 'PUBLISHED' : 'DRAFT'}
-                </button>
-                
-                <div className="flex gap-2">
-                  <button 
-                    onClick={() => {
-                      setAvatarFile(null);
-                      setAvatarPreview(null);
-                      setEditing(t);
-                    }} 
-                    className="p-3 rounded-xl bg-[var(--admin-input-bg)] border border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:border-[var(--admin-accent)] transition-all shadow-sm"
-                    title="Edit Testimonial"
-                  >
-                    <Edit3 size={18} />
-                  </button>
-                  <button 
-                    onClick={() => deleteTestimonial(t.id)} 
-                    className="p-3 rounded-xl bg-red-500/5 border border-red-500/10 text-[var(--admin-text-muted)] hover:text-red-400 hover:border-red-500/30 transition-all shadow-sm"
-                    title="Delete Testimonial"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </div>
-            </GlassCard>
+              </GlassCard>
+            </Reorder.Item>
           ))}
-        </div>
+        </Reorder.Group>
       </div>
 
       {/* Edit Modal */}
