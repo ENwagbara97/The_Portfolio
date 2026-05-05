@@ -16,7 +16,8 @@ import {
   ArrowLeft,
   Play,
   ShieldCheck,
-  AlertCircle
+  AlertCircle,
+  Trash2
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAdminTheme } from '../../context/AdminThemeContext';
@@ -95,6 +96,38 @@ export default function AdminSettings() {
       setMessage({ text: 'Upload failed.', type: 'error' });
     } finally {
       setUploadingMockup(null);
+    }
+  }
+
+  async function handleDeleteAsset(key: string) {
+    if (!window.confirm('Are you sure you want to remove this asset?')) return;
+    
+    try {
+      // 1. Get the current URL
+      const currentUrl = settings[key];
+      if (!currentUrl) return;
+
+      // 2. Extract storage path if it's a supabase URL
+      if (currentUrl.includes('supabase')) {
+        const path = currentUrl.split('/').pop();
+        if (path) {
+          const bucket = key === 'mockup_video_url' ? 'mockup-screens' : 'mockup-screens';
+          await supabase.storage.from(bucket).remove([`mockup/${path}`]);
+        }
+      }
+
+      // 3. Clear from state and DB
+      const newSettings = { ...settings };
+      delete newSettings[key];
+      setSettings(newSettings);
+      
+      await supabase.from('site_settings').delete().match({ key });
+      
+      setMessage({ text: 'Asset removed successfully.', type: 'success' });
+      setTimeout(() => setMessage(null), 3000);
+    } catch (err) {
+      console.error('Delete failed:', err);
+      setMessage({ text: 'Delete failed.', type: 'error' });
     }
   }
 
@@ -516,8 +549,16 @@ export default function AdminSettings() {
                     </div>
                     <label className="btn-primary w-full justify-center cursor-pointer">
                       <input type="file" accept="video/*" className="hidden" onChange={e => handleMockupUpload(e, 'mockup_video_url')} disabled={!!uploadingMockup} />
-                      {uploadingMockup === 'mockup_video_url' ? 'UPLOADING...' : 'UPLOAD SCREEN RECORDING (MP4)'}
+                      {uploadingMockup === 'mockup_video_url' ? 'UPLOADING...' : (settings.mockup_video_url ? 'REPLACE VIDEO' : 'UPLOAD SCREEN RECORDING (MP4)')}
                     </label>
+                    {settings.mockup_video_url && (
+                      <button 
+                        onClick={() => handleDeleteAsset('mockup_video_url')}
+                        className="w-full py-2 bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg text-[10px] font-bold hover:bg-red-500/20 transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Trash2 size={12} /> REMOVE VIDEO
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -551,10 +592,20 @@ export default function AdminSettings() {
                           </div>
                         )}
                       </div>
-                      <label className="w-full py-2 bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-lg text-[10px] font-bold text-[var(--admin-text)] flex items-center justify-center cursor-pointer hover:bg-[var(--admin-border)] transition-colors">
-                        <input type="file" accept="image/*" className="hidden" onChange={e => handleMockupUpload(e, item.key)} disabled={!!uploadingMockup} />
-                        REPLACE
-                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <label className="w-full py-2 bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-lg text-[10px] font-bold text-[var(--admin-text)] flex items-center justify-center cursor-pointer hover:bg-[var(--admin-border)] transition-colors">
+                          <input type="file" accept="image/*" className="hidden" onChange={e => handleMockupUpload(e, item.key)} disabled={!!uploadingMockup} />
+                          {settings[item.key] ? 'REPLACE' : 'UPLOAD'}
+                        </label>
+                        {settings[item.key] && (
+                          <button 
+                            onClick={() => handleDeleteAsset(item.key)}
+                            className="w-full py-2 bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg text-[10px] font-bold hover:bg-red-500/20 transition-colors flex items-center justify-center gap-2"
+                          >
+                            <Trash2 size={12} /> DELETE
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
