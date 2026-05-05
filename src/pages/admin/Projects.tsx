@@ -135,7 +135,7 @@ export default function AdminProjects() {
       <div className="max-w-7xl mx-auto space-y-8">
         
         <div className="mb-2">
-          <Link to="/admin" className="inline-flex items-center gap-2 text-xs font-mono text-[var(--admin-text-muted)] hover:text-[var(--admin-accent)] transition-colors">
+          <Link to="/console" className="inline-flex items-center gap-2 text-xs font-mono text-[var(--admin-text-muted)] hover:text-[var(--admin-accent)] transition-colors bg-[var(--admin-card)] px-4 py-2 rounded-full border border-[var(--admin-border)] md:bg-transparent md:border-none md:p-0">
             <ArrowLeft size={14} /> Back to Dashboard
           </Link>
         </div>
@@ -450,90 +450,93 @@ export default function AdminProjects() {
               </div>
 
               {/* SECTION: Descriptions & Content */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 border-b border-[var(--admin-border)] pb-12">
-                <div className="space-y-6">
-                  <h3 className="text-xl font-display text-[var(--admin-text)]">Context & Narrative</h3>
-                  <div>
-                    <label className="block text-xs font-mono uppercase tracking-widest text-muted mb-2">Short Abstract</label>
-                    <textarea 
-                      value={editing.short_description || ''} 
-                      onChange={e => setEditing({...editing, short_description: e.target.value})}
-                      className="w-full rounded-xl p-4 text-sm h-32 focus:outline-none" 
-                      style={{ background: 'var(--admin-input-bg)', border: '1px solid var(--admin-border)', color: 'var(--admin-text)' }}
-                      placeholder="Brief summary for project cards..."
-                    />
-                  </div>
-                  <div className="col-span-full w-full">
-                    <label className="block text-xs font-mono uppercase tracking-widest text-muted mb-4 text-center border-b border-[var(--admin-border)] pb-2">Narrative Case Study Construction</label>
-                    <div className="w-full">
-                      <RichTextEditor 
-                        content={editing.case_study_content}
-                        onChange={(json, html) => setEditing({...editing, case_study_content: json, case_study_html: html})}
-                        slug={editing.slug}
+              {/* SECTION: Descriptions & Content */}
+              <div className="space-y-12 border-b border-[var(--admin-border)] pb-12">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                  <div className="space-y-6">
+                    <h3 className="text-xl font-display text-[var(--admin-text)]">Context & Narrative</h3>
+                    <div>
+                      <label className="block text-xs font-mono uppercase tracking-widest text-[var(--admin-text-muted)] mb-2">Short Abstract</label>
+                      <textarea 
+                        value={editing.short_description || ''} 
+                        onChange={e => setEditing({...editing, short_description: e.target.value})}
+                        className="w-full rounded-xl p-4 text-sm h-32 focus:outline-none" 
+                        style={{ background: 'var(--admin-input-bg)', border: '1px solid var(--admin-border)', color: 'var(--admin-text)' }}
+                        placeholder="Brief summary for project cards..."
                       />
                     </div>
                   </div>
-                </div>
-                {/* SECTION: GIS Metadata (Conditional) */}
-                {editing.type !== 'UX' && (
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between border-b border-[var(--admin-border)] pb-2">
-                      <h3 className="text-xl font-display text-[var(--admin-text)]">GIS Metadata</h3>
-                      {editing.type === 'Hybrid' && (
-                        <div className="flex items-center gap-3">
-                          <span className="text-[10px] font-mono text-[var(--admin-text-muted)] uppercase tracking-widest">
-                            {editing.gis_metadata?.enabled ? 'Metadata Active' : 'Metadata Inactive'}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => setEditing({
-                              ...editing,
-                              gis_metadata: { ...(editing.gis_metadata || {}), enabled: !editing.gis_metadata?.enabled }
-                            })}
-                            className={`w-12 h-6 rounded-full transition-all relative ${
-                              editing.gis_metadata?.enabled ? 'bg-[var(--admin-accent)]' : 'bg-[var(--admin-input-bg)] border border-[var(--admin-border)]'
-                            }`}
-                          >
-                            <div className={`absolute top-1 left-1 w-4 h-4 rounded-full transition-all ${
-                              editing.gis_metadata?.enabled ? 'translate-x-6 bg-white' : 'translate-x-0 bg-[var(--admin-text-muted)]'
-                            }`} />
-                          </button>
+
+                  {/* SECTION: GIS Metadata (Conditional) */}
+                  {editing.type !== 'UX' && (
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between border-b border-[var(--admin-border)] pb-2">
+                        <h3 className="text-xl font-display text-[var(--admin-text)]">GIS Metadata</h3>
+                        {editing.type === 'Hybrid' && (
+                          <div className="flex items-center gap-3">
+                            <span className="text-[10px] font-mono text-[var(--admin-text-muted)] uppercase tracking-widest">
+                              {editing.gis_metadata?.enabled ? 'Metadata Active' : 'Metadata Inactive'}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setEditing({
+                                ...editing,
+                                gis_metadata: { ...(editing.gis_metadata || {}), enabled: !editing.gis_metadata?.enabled }
+                              })}
+                              className={`w-12 h-6 rounded-full transition-all relative ${
+                                editing.gis_metadata?.enabled ? 'bg-[var(--admin-accent)]' : 'bg-[var(--admin-input-bg)] border border-[var(--admin-border)]'
+                              }`}
+                            >
+                              <div className={`absolute top-1 left-1 w-4 h-4 rounded-full transition-all ${
+                                editing.gis_metadata?.enabled ? 'translate-x-6 bg-white' : 'translate-x-0 bg-[var(--admin-text-muted)]'
+                              }`} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {(editing.type === 'GIS' || (editing.type === 'Hybrid' && editing.gis_metadata?.enabled)) ? (
+                        <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                          <div>
+                            <label className="block text-xs font-mono uppercase tracking-widest text-[var(--admin-text-muted)] mb-1">Coordinate System</label>
+                            <input 
+                              type="text" 
+                              value={editing.gis_metadata?.coordinate_system || ''} 
+                              onChange={e => setEditing({...editing, gis_metadata: {...(editing.gis_metadata || {}), coordinate_system: e.target.value}})}
+                              className="w-full rounded-xl px-4 py-2 text-sm font-mono focus:outline-none transition-all" 
+                              style={{ background: 'var(--admin-input-bg)', border: '1px solid var(--admin-border)', color: 'var(--admin-text)' }}
+                              placeholder="e.g. WGS 1984"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-mono uppercase tracking-widest text-[var(--admin-text-muted)] mb-1">Data Points</label>
+                            <input 
+                              type="number" 
+                              value={editing.gis_metadata?.data_points || 0} 
+                              onChange={e => setEditing({...editing, gis_metadata: {...(editing.gis_metadata || {}), data_points: parseInt(e.target.value)}})}
+                              className="w-full rounded-xl px-4 py-2 text-sm font-mono focus:outline-none transition-all" 
+                              style={{ background: 'var(--admin-input-bg)', border: '1px solid var(--admin-border)', color: 'var(--admin-text)' }}
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-8 rounded-2xl border border-dashed border-[var(--admin-border)] bg-[var(--admin-input-bg)]/30 flex flex-col items-center justify-center text-center">
+                          <Globe className="text-[var(--admin-text-muted)] opacity-20 mb-3" size={40} />
+                          <p className="text-xs text-[var(--admin-text-muted)] font-mono uppercase tracking-widest">GIS Metadata is currently disabled for this Hybrid project.</p>
                         </div>
                       )}
                     </div>
+                  )}
+                </div>
 
-                    {(editing.type === 'GIS' || (editing.type === 'Hybrid' && editing.gis_metadata?.enabled)) ? (
-                      <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                        <div>
-                          <label className="block text-xs font-mono uppercase tracking-widest text-muted mb-1">Coordinate System</label>
-                          <input 
-                            type="text" 
-                            value={editing.gis_metadata?.coordinate_system || ''} 
-                            onChange={e => setEditing({...editing, gis_metadata: {...(editing.gis_metadata || {}), coordinate_system: e.target.value}})}
-                            className="w-full rounded-xl px-4 py-2 text-sm font-mono focus:outline-none transition-all" 
-                            style={{ background: 'var(--admin-input-bg)', border: '1px solid var(--admin-border)', color: 'var(--admin-text)' }}
-                            placeholder="e.g. WGS 1984"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-mono uppercase tracking-widest text-muted mb-1">Data Points</label>
-                          <input 
-                            type="number" 
-                            value={editing.gis_metadata?.data_points || 0} 
-                            onChange={e => setEditing({...editing, gis_metadata: {...(editing.gis_metadata || {}), data_points: parseInt(e.target.value)}})}
-                            className="w-full rounded-xl px-4 py-2 text-sm font-mono focus:outline-none transition-all" 
-                            style={{ background: 'var(--admin-input-bg)', border: '1px solid var(--admin-border)', color: 'var(--admin-text)' }}
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="p-8 rounded-2xl border border-dashed border-[var(--admin-border)] bg-[var(--admin-input-bg)]/30 flex flex-col items-center justify-center text-center">
-                        <Globe className="text-[var(--admin-text-muted)] opacity-20 mb-3" size={40} />
-                        <p className="text-xs text-[var(--admin-text-muted)] font-mono uppercase tracking-widest">GIS Metadata is currently disabled for this Hybrid project.</p>
-                      </div>
-                    )}
-                  </div>
-                )}
+                <div className="w-full mt-8">
+                  <label className="block text-xs font-mono uppercase tracking-widest text-[var(--admin-text-muted)] mb-4 text-center border-b border-[var(--admin-border)] pb-2">Narrative Case Study Construction</label>
+                  <RichTextEditor 
+                    content={editing.case_study_content}
+                    onChange={(json, html) => setEditing({...editing, case_study_content: json, case_study_html: html})}
+                    slug={editing.slug}
+                  />
+                </div>
               </div>
             </div>
 

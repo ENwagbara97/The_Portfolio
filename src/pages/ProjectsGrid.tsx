@@ -50,7 +50,7 @@ export default function ProjectsGrid() {
               >
                 <div className="aspect-video bg-white border-b border-border-default flex items-center justify-center text-muted font-mono text-sm overflow-hidden p-2">
                   {proj.cover_image_url && (
-                    <img src={proj.cover_image_url} alt={proj.title} className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-700" />
+                    <img src={proj.cover_image_url} alt={proj.title} loading="lazy" className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-700" />
                   )}
                 </div>
                 <div className="p-6">

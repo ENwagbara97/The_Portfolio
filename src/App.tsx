@@ -5,6 +5,7 @@ import ProjectsGrid from './pages/ProjectsGrid';
 import ProjectDetail from './pages/ProjectDetail';
 import GISLab from './pages/GISLab';
 import Contact from './pages/Contact';
+import MockupShowcase from './pages/MockupShowcase';
 
 // Admin Pages
 import AdminLayout from './components/admin/AdminLayout';
@@ -18,6 +19,8 @@ import CVManager from './pages/admin/CVManager';
 import AdminTestimonials from './pages/admin/Testimonials';
 import MediaLibrary from './pages/admin/MediaLibrary';
 import GISLabManager from './pages/admin/GISLabManager';
+import GISToolsManager from './pages/admin/GISToolsManager';
+import AdminSignup from './pages/admin/Signup';
 
 import MainLayout from './components/MainLayout';
 
@@ -35,8 +38,11 @@ function App() {
             <Route path="contact" element={<Contact />} />
           </Route>
 
-          {/* Login page — public, standalone (no nav/footer) */}
+          <Route path="/mockup" element={<MockupShowcase />} />
+
+          {/* Login/Signup pages — public, standalone (no nav/footer) */}
           <Route path="/console/login" element={<AdminLogin />} />
+          <Route path="/console/signup" element={<AdminSignup />} />
 
           {/* Protected Admin — all child routes require auth */}
           <Route path="/console" element={<AdminLayout />}>
@@ -47,6 +53,7 @@ function App() {
             <Route path="testimonials" element={<AdminTestimonials />} />
             <Route path="media" element={<MediaLibrary />} />
             <Route path="gis-lab" element={<GISLabManager />} />
+            <Route path="gis-tools" element={<GISToolsManager />} />
             <Route path="enquiries" element={<AdminEnquiries />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route path="settings/cv" element={<CVManager />} />

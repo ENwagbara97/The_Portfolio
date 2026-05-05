@@ -10,7 +10,8 @@ import {
   ChevronRight,
   LogOut,
   User,
-  Globe
+  Globe,
+  Wrench
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
@@ -24,6 +25,7 @@ const menuItems = [
   { icon: ClipboardList, label: 'Contact Enquiries', path: '/console/enquiries' },
   { icon: ImageIcon, label: 'Media Library', path: '/console/media' },
   { icon: Globe, label: 'GIS Lab Manager', path: '/console/gis-lab' },
+  { icon: Wrench, label: 'GIS Toolbox', path: '/console/gis-tools' },
   { 
     icon: Settings, 
     label: 'Settings', 

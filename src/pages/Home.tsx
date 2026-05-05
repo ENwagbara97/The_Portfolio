@@ -1,6 +1,6 @@
-import { useState, useEffect, Component, ErrorInfo, ReactNode } from 'react';
+import { useState, useEffect, Component, ErrorInfo, ReactNode, lazy, Suspense } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowUpRight, User } from 'lucide-react';
+import { ArrowUpRight, Loader2 } from 'lucide-react';
 import { supabase, Project, Testimonial } from '../lib/supabase';
 import { useAnimatedCounter } from '../hooks/useAnimatedCounter';
 import SectionEntrance from '../components/SectionEntrance';
@@ -8,6 +8,8 @@ import GlassCard from '../components/GlassCard';
 import Badge from '../components/Badge';
 import { TerminalWindow } from '../components/ui/TerminalWindow';
 import TestimonialCarousel from '../components/ui/TestimonialCarousel';
+
+const ThreeGlobe = lazy(() => import('../components/ThreeGlobe'));
 
 // Simple Error Boundary to catch render-time issues
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
@@ -174,18 +176,35 @@ export default function Home() {
             </div>
           </SectionEntrance>
 
-          <SectionEntrance className="hidden md:block">
-            <div
-              className="w-full aspect-square rounded-lg border grid place-items-center opacity-40 grayscale group-hover:grayscale-0 transition-all"
-              style={{
-                background: 'linear-gradient(135deg, rgba(37,99,235,0.1) 0%, rgba(132,204,22,0.05) 100%)',
-                borderColor: 'rgba(37,99,235,0.2)',
-              }}
-            >
-                <div className="text-center space-y-2">
-                    <Globe size={48} className="mx-auto text-accent-blue opacity-50" />
-                    <p className="text-xs font-mono text-muted">[ Interactive_GIS_Module_Active ]</p>
+          <SectionEntrance className="w-full mt-8 md:mt-0">
+            <div className="w-full aspect-square relative rounded-3xl overflow-hidden border border-accent-blue/20 bg-[#050b15] shadow-[0_0_60px_rgba(37,99,235,0.15)]">
+              <Suspense fallback={
+                <div className="w-full h-full flex items-center justify-center bg-[#050b15]">
+                  <Loader2 className="animate-spin text-accent-blue" size={32} />
                 </div>
+              }>
+                <ThreeGlobe />
+              </Suspense>
+              {/* Theme-aware label — uses CSS vars so it switches with light/dark mode */}
+              <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between pointer-events-none z-10">
+                <div
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg backdrop-blur-md border text-[10px] font-mono uppercase tracking-widest"
+                  style={{
+                    backgroundColor: 'var(--bg-glass)',
+                    borderColor: 'var(--border-default)',
+                    color: 'var(--text-primary)',
+                  }}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent-lime animate-pulse flex-shrink-0" />
+                  Interactive_GIS_Module_Active
+                </div>
+                <div
+                  className="text-[9px] font-mono uppercase tracking-wider px-2"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  LIVE
+                </div>
+              </div>
             </div>
           </SectionEntrance>
         </div>
@@ -206,7 +225,7 @@ export default function Home() {
               >
                 <div className="aspect-video bg-white border-b border-border-default flex items-center justify-center text-muted font-mono text-sm overflow-hidden p-2">
                   {proj.cover_image_url ? (
-                    <img src={proj.cover_image_url} alt={proj.title} className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-700" />
+                    <img src={proj.cover_image_url} alt={proj.title} loading="lazy" className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-700" />
                   ) : (
                     '[Project Cover]'
                   )}
@@ -294,22 +313,3 @@ export default function Home() {
   );
 }
 
-function Globe({ size, className }: { size: number; className?: string }) {
-    return (
-        <svg 
-            width={size} 
-            height={size} 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="1.5" 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            className={className}
-        >
-            <circle cx="12" cy="12" r="10" />
-            <line x1="2" y1="12" x2="22" y2="12" />
-            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-        </svg>
-    );
-}

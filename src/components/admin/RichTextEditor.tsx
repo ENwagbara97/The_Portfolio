@@ -262,21 +262,24 @@ export default function RichTextEditor({ content, onChange, slug = 'temp' }: Ric
     if (type === 'image') {
       editor.chain().focus().setImage({ src: mediaUrl }).run();
     } else if (type === 'video') {
-      // Basic check for YouTube/Vimeo
-      let url = mediaUrl;
-      if (url.includes('youtube.com') || url.includes('youtu.be')) {
-         // YouTube embeds are handled as iframes usually, but we'll use our video node for now
-         // Actually user wants YouTube/Vimeo to be iframes. 
-         // Let's stick to the prompt's video player for direct links and maybe a separate one for embeds.
+      let finalSrc = mediaUrl;
+      const match = mediaUrl.match(/src=["'](.*?)["']/);
+      if (match && match[1]) {
+        finalSrc = match[1];
       }
       (editor.chain().focus() as any).insertContent({
         type: 'video',
-        attrs: { src: url }
+        attrs: { src: finalSrc }
       }).run();
     } else if (type === 'figma') {
+      let finalSrc = mediaUrl;
+      const match = mediaUrl.match(/src=["'](.*?)["']/);
+      if (match && match[1]) {
+        finalSrc = match[1];
+      }
       (editor.chain().focus() as any).insertContent({
         type: 'figma',
-        attrs: { src: mediaUrl }
+        attrs: { src: finalSrc }
       }).run();
     }
 
@@ -308,7 +311,7 @@ export default function RichTextEditor({ content, onChange, slug = 'temp' }: Ric
   return (
     <div className="w-full space-y-4 admin-editor-container">
       {/* TOOLBAR */}
-      <div className="sticky top-0 z-30 p-1.5 bg-[var(--admin-surface)]/80 border border-[var(--border-default)] rounded-2xl flex flex-nowrap items-center shadow-2xl backdrop-blur-xl w-full overflow-x-auto no-scrollbar scroll-smooth">
+      <div className="sticky top-0 z-30 p-2 bg-[var(--admin-surface)]/95 border border-[var(--admin-border)] rounded-2xl flex flex-wrap gap-1 items-center shadow-2xl backdrop-blur-xl w-full">
         <div className="flex items-center gap-1 pr-2 border-r border-[var(--border-default)] flex-shrink-0">
           <ToolbarButton 
             onClick={() => editor.chain().focus().toggleBold().run()}
@@ -557,14 +560,16 @@ export default function RichTextEditor({ content, onChange, slug = 'temp' }: Ric
         </div>
       </div>
 
-      {/* EDITOR CONTENT AREA */}
-      <div 
-        className="min-h-[500px] rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-card)] overflow-hidden transition-all duration-300 focus-within:border-[#2563EB]/50"
-      >
-        <EditorContent 
-          editor={editor} 
-          className="prose prose-invert max-w-none px-2 py-6 md:p-10 focus:outline-none"
-        />
+      {/* EDITOR CONTENT AREA - Word Doc Style */}
+      <div className="bg-black/20 p-2 md:p-8 rounded-2xl border border-[var(--admin-border)]">
+        <div 
+          className="min-h-[800px] max-w-[850px] mx-auto bg-white rounded-sm shadow-2xl overflow-hidden transition-all duration-300 focus-within:ring-4 focus-within:ring-[#2563EB]/20"
+        >
+          <EditorContent 
+            editor={editor} 
+            className="prose prose-slate text-slate-900 max-w-none px-6 py-10 md:px-16 md:py-16 focus:outline-none min-h-full"
+          />
+        </div>
       </div>
 
       {/* MEDIA MODAL */}

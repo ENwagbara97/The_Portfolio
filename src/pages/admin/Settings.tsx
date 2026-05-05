@@ -120,7 +120,7 @@ export default function AdminSettings() {
   return (
     <div className="space-y-8 animate-in fade-in duration-700 max-w-4xl">
       <div className="mb-2 md:mb-6">
-        <Link to="/admin" className="inline-flex items-center gap-2 text-xs font-mono text-[var(--admin-text-muted)] hover:text-[var(--admin-accent)] transition-colors bg-[var(--admin-card)] px-4 py-2 rounded-full border border-[var(--admin-border)] md:bg-transparent md:border-none md:p-0">
+        <Link to="/console" className="inline-flex items-center gap-2 text-xs font-mono text-[var(--admin-text-muted)] hover:text-[var(--admin-accent)] transition-colors bg-[var(--admin-card)] px-4 py-2 rounded-full border border-[var(--admin-border)] md:bg-transparent md:border-none md:p-0">
           <ArrowLeft size={14} /> Back to Dashboard
         </Link>
       </div>

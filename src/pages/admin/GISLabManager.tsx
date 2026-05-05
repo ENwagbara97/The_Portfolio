@@ -3,7 +3,8 @@ import { Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import GlassCard from '../../components/GlassCard';
-import { Trash2, Edit3, X, Plus, Loader2, ChevronUp, ChevronDown, Save, Folder } from 'lucide-react';
+import { Trash2, Edit3, X, Plus, Loader2, ChevronUp, ChevronDown, Save, Folder, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface GISFolder {
   id: string;
@@ -67,11 +68,16 @@ export default function GISLabManager() {
   }
 
   if (authLoading) return <div className="min-h-screen flex items-center justify-center font-mono text-muted">/ syncing_geodata...</div>;
-  if (!user) return <Navigate to="/" />;
+  if (!user) return <Navigate to="/console/login" />;
 
   return (
     <div className="bg-[var(--admin-bg)] text-[var(--admin-text)] transition-colors min-h-screen py-12 px-4">
       <div className="max-w-4xl mx-auto space-y-8">
+        <div className="mb-2">
+          <Link to="/console" className="inline-flex items-center gap-2 text-xs font-mono text-[var(--admin-text-muted)] hover:text-[var(--admin-accent)] transition-colors bg-[var(--admin-card)] px-4 py-2 rounded-full border border-[var(--admin-border)] md:bg-transparent md:border-none md:p-0">
+            <ArrowLeft size={14} /> Back to Dashboard
+          </Link>
+        </div>
         
         <div className="flex justify-between items-end">
           <div className="space-y-1">

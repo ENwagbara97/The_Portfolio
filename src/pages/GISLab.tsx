@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { supabase } from '../lib/supabase';
 import GlassCard from '../components/GlassCard';
 import SectionEntrance from '../components/SectionEntrance';
-import GISIntelligenceMap from '../components/GISIntelligenceMap';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Terminal, Activity, Globe, Loader2, Database, Shield, Zap } from 'lucide-react';
-import ThreeGlobe from '../components/ThreeGlobe';
+import { motion } from 'framer-motion';
+import { Terminal, Activity, Globe, Loader2, Database, Shield } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
+
+const ThreeGlobe = lazy(() => import('../components/ThreeGlobe'));
 
 interface GISFolder {
   id: string;
@@ -13,22 +14,59 @@ interface GISFolder {
   display_order: number;
 }
 
+interface GISTool {
+  id: string;
+  title: string;
+  description: string;
+  tool_logic_url: string;
+  icon_name: string;
+  category: string;
+  is_active: boolean;
+  display_order: number;
+}
+
+// Fallback in case DB is not seeded or fails
+const HARDCODED_FALLBACK_TOOLS = [
+  { id: '1', title: 'HEAT ISLAND DETECTION', description: 'Processing thermal bands to map urban temperature deltas and microclimate zones.', tool_logic_url: '#', icon_name: 'Thermometer', category: 'Urban Planning', is_active: true, display_order: 1 },
+  { id: '2', title: 'NDVI VEGETATION INDEX', description: 'Analyzing multispectral reflectance to determine biomass health and agricultural output.', tool_logic_url: '#', icon_name: 'Leaf', category: 'Environmental', is_active: true, display_order: 2 },
+  { id: '3', title: 'HYDROGRAPHIC ANALYSIS', description: 'Subsurface terrain modeling and drainage basin calculation via automated DEM processing.', tool_logic_url: '#', icon_name: 'Droplets', category: 'Hydrography', is_active: true, display_order: 3 },
+];
+
+const DynamicIcon = ({ name, size, className }: { name: string, size: number, className?: string }) => {
+  const Icon = (LucideIcons as any)[name] || Database;
+  return <Icon size={size} className={className} />;
+};
+
 export default function GISLab() {
   const [folders, setFolders] = useState<GISFolder[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<GISFolder | null>(null);
   const [loading, setLoading] = useState(true);
   const [logs, setLogs] = useState<string[]>([]);
+  const [gisTools, setGisTools] = useState<GISTool[]>([]);
+  const [toolsLoading, setToolsLoading] = useState(true);
 
   useEffect(() => {
-    async function loadFolders() {
-      const { data } = await supabase.from('gis_folders').select('*').order('display_order');
-      if (data && data.length > 0) {
-        setFolders(data);
-        setSelectedFolder(data[0]);
+    async function loadData() {
+      const { data: foldersData } = await supabase.from('gis_folders').select('*').order('display_order');
+      if (foldersData && foldersData.length > 0) {
+        setFolders(foldersData);
+        setSelectedFolder(foldersData[0]);
       }
+      
+      const { data: toolsData, error } = await supabase
+        .from('gis_tools')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
+        
+      if (!error && toolsData) {
+        setGisTools(toolsData);
+      }
+      
+      setToolsLoading(false);
       setLoading(false);
     }
-    loadFolders();
+    loadData();
   }, []);
 
   // Simulate logging activity when folder changes
@@ -63,6 +101,8 @@ export default function GISLab() {
     </div>
   );
 
+  const displayedTools = gisTools.length > 0 ? gisTools : HARDCODED_FALLBACK_TOOLS;
+
   return (
     <div className="bg-primary transition-colors min-h-screen py-16 px-4 font-sans text-primary">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -92,10 +132,10 @@ export default function GISLab() {
             </div>
         </SectionEntrance>
 
-        <div className="grid lg:grid-cols-12 gap-8">
+        <div className="gis-lab-layout grid lg:grid-cols-12 gap-8">
           
           {/* Node Navigation (3 Cols) */}
-          <div className="lg:col-span-3 space-y-6">
+          <div className="gis-lab-sidebar lg:col-span-3 space-y-6">
             <h3 className="text-[10px] font-mono text-muted uppercase tracking-widest px-1 flex items-center gap-2">
                 <Database size={12} />
                 AVAILABLE_DATA_NODES
@@ -142,24 +182,40 @@ export default function GISLab() {
                 </div>
             </GlassCard>
 
-            <div className="aspect-square w-full rounded-3xl border border-border-default overflow-hidden relative group">
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60 pointer-events-none z-10" />
-                <div className="absolute top-4 left-4 z-20">
-                    <div className="flex items-center gap-2 px-2 py-1 rounded bg-black/40 backdrop-blur-md border border-white/10 text-[9px] font-mono uppercase tracking-widest">
-                        <Zap size={10} className="text-accent-blue animate-pulse" />
-                        Live_Globe_View
-                    </div>
-                </div>
-                <div className="w-full h-full bg-[#050505]">
-                    <ThreeGlobe />
-                </div>
-            </div>
           </div>
 
           {/* Main Visual Node (9 Cols) */}
           <div className="lg:col-span-9 space-y-6">
-            <div className="aspect-[16/9] md:aspect-[21/9] lg:aspect-[16/7]">
-                <GISIntelligenceMap title={selectedFolder?.folder_name || 'INITIALIZING'} />
+
+            {/* Status badge */}
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl border border-accent-lime/30 bg-accent-lime/5 w-fit">
+                <span className="w-2 h-2 rounded-full bg-accent-lime animate-pulse" />
+                <span className="text-[11px] font-mono text-accent-lime uppercase tracking-widest">Interactive_GIS_Module_Active</span>
+              </div>
+              <p className="text-[10px] font-mono text-muted uppercase tracking-widest">
+                Node: {selectedFolder?.folder_name || 'INITIALIZING'}
+              </p>
+            </div>
+
+            {/* ThreeGlobe */}
+            <div className="gis-lab-map-panel w-full rounded-2xl overflow-hidden border border-accent-blue/30 bg-[#050b15]">
+              <Suspense fallback={
+                <div className="w-full h-[320px] md:h-[420px] flex items-center justify-center bg-[#050b15]">
+                  <Loader2 className="animate-spin text-accent-blue" size={32} />
+                </div>
+              }>
+                <ThreeGlobe />
+              </Suspense>
+              <div className="absolute top-4 left-4 font-mono text-[10px] text-accent-blue space-y-1 pointer-events-none z-10">
+                <p className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-accent-blue animate-pulse" /> SATELLITE_LINK: ACTIVE</p>
+                <p>SIGNAL_STRENGTH: 94.2%</p>
+                <p>LAT_RES: 0.00041m</p>
+              </div>
+              <div className="absolute bottom-4 right-4 text-right font-mono text-[10px] text-accent-blue pointer-events-none z-10">
+                <p className="uppercase tracking-widest">{selectedFolder?.folder_name || 'SYSTEM_READY'}</p>
+                <p className="opacity-40">AUTO_SCAN_V4.2</p>
+              </div>
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
@@ -189,28 +245,44 @@ export default function GISLab() {
                     <h2 className="text-2xl font-display uppercase tracking-tight">Geospatial_Toolbox</h2>
                     <div className="h-[1px] flex-1 bg-border-default mx-8 opacity-40" />
                 </div>
-                <div className="grid md:grid-cols-3 gap-6">
-                    {[
-                        { title: 'Heat Island Detection', desc: 'Processing thermal bands to map urban temperature deltas and microclimate zones.', icon: Activity },
-                        { title: 'NDVI Vegetation Index', desc: 'Analyzing multispectral reflectance to determine biomass health and agricultural output.', icon: Globe },
-                        { title: 'Hydrographic Analysis', desc: 'Subsurface terrain modeling and drainage basin calculation via automated DEM processing.', icon: Database },
-                    ].map((tool, i) => (
-                    <GlassCard key={i} className="group hover:-translate-y-1 transition-all duration-300">
-                        <div className="p-6 space-y-4">
-                            <div className="w-10 h-10 rounded-xl bg-surface border border-border-default flex items-center justify-center text-accent-blue group-hover:scale-110 transition-transform">
-                                <tool.icon size={20} />
-                            </div>
-                            <div>
-                                <h3 className="font-heading font-bold text-primary tracking-tight mb-2 uppercase text-sm">{tool.title}</h3>
-                                <p className="text-xs text-secondary leading-relaxed mb-4">{tool.desc}</p>
-                            </div>
-                            <button className="text-[10px] font-mono uppercase tracking-widest text-accent-blue flex items-center gap-2 group-hover:gap-3 transition-all">
-                                ACCESS_TOOL_LOGIC <span className="opacity-50">→</span>
-                            </button>
-                        </div>
-                    </GlassCard>
+                {toolsLoading ? (
+                  <div className="grid md:grid-cols-3 gap-6">
+                    {[1,2,3].map(i => (
+                      <div key={i} style={{
+                        height: '200px',
+                        borderRadius: '16px',
+                        background: 'linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-glass) 50%, var(--bg-surface) 75%)',
+                        backgroundSize: '200% 100%',
+                        animation: 'shimmer 1.5s infinite',
+                      }} />
                     ))}
-                </div>
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-3 gap-6">
+                      {displayedTools.filter(t => !selectedFolder || t.category.toUpperCase() === selectedFolder.folder_name.toUpperCase()).length > 0 
+                       ? displayedTools.filter(t => !selectedFolder || t.category.toUpperCase() === selectedFolder.folder_name.toUpperCase()).map((tool, i) => (
+                      <GlassCard key={i} className="group hover:-translate-y-1 transition-all duration-300">
+                          <div className="p-6 space-y-4">
+                              <div className="w-10 h-10 rounded-xl bg-surface border border-border-default flex items-center justify-center text-accent-blue group-hover:scale-110 transition-transform">
+                                  <DynamicIcon name={tool.icon_name} size={20} />
+                              </div>
+                              <div>
+                                  <h3 className="font-heading font-bold text-primary tracking-tight mb-2 uppercase text-sm">{tool.title}</h3>
+                                  <p className="text-xs text-secondary leading-relaxed mb-4">{tool.description}</p>
+                              </div>
+                              <a href={tool.tool_logic_url || '#'} className="text-[10px] font-mono uppercase tracking-widest text-accent-blue flex items-center gap-2 group-hover:gap-3 transition-all inline-block">
+                                  ACCESS_TOOL_LOGIC <span className="opacity-50">→</span>
+                              </a>
+                          </div>
+                      </GlassCard>
+                      )) 
+                      : (
+                         <div className="col-span-3 text-center py-8 text-muted font-mono text-sm">
+                           NO TOOLS FOUND FOR NODE: {selectedFolder?.folder_name.toUpperCase()}
+                         </div>
+                      )}
+                  </div>
+                )}
             </div>
         </SectionEntrance>
       </div>

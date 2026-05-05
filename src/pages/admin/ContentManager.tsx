@@ -193,7 +193,7 @@ export default function ContentManager() {
         
         {/* Left Sidebar */}
         <div className="lg:col-span-1 space-y-6">
-          <Link to="/admin" className="inline-flex items-center gap-2 text-xs font-mono text-[var(--admin-text-muted)] hover:text-[var(--admin-accent)] transition-colors mb-4">
+          <Link to="/console" className="inline-flex items-center gap-2 text-xs font-mono text-[var(--admin-text-muted)] hover:text-[var(--admin-accent)] transition-colors bg-[var(--admin-card)] px-4 py-2 rounded-full border border-[var(--admin-border)] md:bg-transparent md:border-none md:p-0">
             <ArrowLeft size={14} /> Back to Dashboard
           </Link>
           <div className="flex items-center gap-2 mb-2">

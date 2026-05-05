@@ -17,20 +17,40 @@ export default function Navigation() {
 
   useEffect(() => {
     async function loadNav() {
-      const [{ data: contentData }, { data: settingsData }] = await Promise.all([
-        supabase.from('page_content').select('field_value').eq('page', 'home').eq('section', 'nav').eq('field_key', 'live_status_text').single(),
-        supabase.from('site_settings').select('key, value')
-      ]);
+      const { data: settingsData } = await supabase.from('site_settings').select('key, value');
 
-      if (contentData && contentData.field_value) setNavText(contentData.field_value);
-      
       if (settingsData) {
         const smap: Record<string, string> = {};
         settingsData.forEach(r => smap[r.key] = r.value);
         setSettings(smap);
+        if (smap['live_status_text']) {
+          setNavText(smap['live_status_text']);
+        }
+        if (smap['brand_logo_url']) {
+          const favicon = document.querySelector('link[rel="icon"]');
+          if (favicon) favicon.setAttribute('href', smap['brand_logo_url']);
+        }
+        if (smap['og_image_url']) {
+          const ogImage = document.querySelector('meta[property="og:image"]');
+          if (ogImage) ogImage.setAttribute('content', smap['og_image_url']);
+          const twitterImage = document.querySelector('meta[name="twitter:image"]');
+          if (twitterImage) twitterImage.setAttribute('content', smap['og_image_url']);
+        }
       }
     }
     loadNav();
+
+    const channel = supabase
+      .channel('site-settings-live')
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'site_settings',
+        filter: 'key=eq.live_status_text'
+      }, (payload: any) => {
+        setNavText(payload.new.value);
+      })
+      .subscribe();
+      
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const isActive = (path: string) => location.pathname === path;
