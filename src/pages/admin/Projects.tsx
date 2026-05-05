@@ -188,7 +188,7 @@ export default function AdminProjects() {
             >
               <GlassCard className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6 p-4 md:p-5 group !bg-[var(--admin-card)] !border-[var(--admin-border)] relative cursor-default">
                 {/* Drag Handle */}
-                <div className="hidden md:flex items-center justify-center text-[var(--admin-text-muted)] cursor-grab active:cursor-grabbing hover:text-[var(--admin-accent)] transition-colors p-1">
+                <div className="flex items-center justify-center text-[var(--admin-text-muted)] cursor-grab active:cursor-grabbing hover:text-[var(--admin-accent)] transition-colors p-2 touch-none">
                   <GripVertical size={20} />
                 </div>
 

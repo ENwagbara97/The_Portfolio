@@ -136,6 +136,52 @@ const PortfolioDemoExtension = Node.create({
   },
 });
 
+const ExternalEmbedExtension = Node.create({
+  name: 'externalEmbed',
+  group: 'block',
+  selectable: true,
+  draggable: true,
+  atom: true,
+
+  addAttributes() {
+    return {
+      src: { default: null },
+    };
+  },
+
+  parseHTML() {
+    return [{ tag: 'iframe[data-type="external-embed"]' }];
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return ['div', { class: 'external-embed-container my-8' }, 
+      ['iframe', mergeAttributes(HTMLAttributes, { 
+        'data-type': 'external-embed',
+        allowfullscreen: true,
+        class: 'w-full aspect-video rounded-xl border border-[var(--border-default)]'
+      })]
+    ];
+  },
+
+  addNodeView() {
+    return ReactNodeViewRenderer(({ node }) => (
+      <NodeViewWrapper className="my-8 space-y-2">
+        <div className="flex items-center gap-2 px-4 py-2 bg-[var(--admin-surface)] rounded-t-xl border-x border-t border-[var(--border-default)]">
+          <Globe size={14} className="text-[var(--admin-text-muted)]" />
+          <span className="text-[10px] font-mono text-[var(--admin-text-muted)] uppercase tracking-widest">External Site Embed — {node.attrs.src}</span>
+        </div>
+        <div className="aspect-video w-full bg-[var(--admin-input-bg)] rounded-b-xl border border-[var(--border-default)] overflow-hidden relative shadow-2xl">
+          <iframe 
+            src={node.attrs.src} 
+            className="w-full h-full border-none"
+            allowFullScreen
+          />
+        </div>
+      </NodeViewWrapper>
+    ));
+  },
+});
+
 // --- EDITOR COMPONENT ---
 
 interface RichTextEditorProps {
@@ -219,6 +265,7 @@ export default function RichTextEditor({ content, onChange, slug = 'temp' }: Ric
       VideoExtension,
       FigmaExtension,
       PortfolioDemoExtension,
+      ExternalEmbedExtension,
     ],
     content: content,
     onUpdate: ({ editor }) => {
@@ -283,11 +330,10 @@ export default function RichTextEditor({ content, onChange, slug = 'temp' }: Ric
         attrs: { src: finalSrc }
       }).run();
     } else if (type === 'link') {
-      if (linkText) {
-        editor.chain().focus().insertContent(`<a href="${mediaUrl}" target="_blank">${linkText}</a>`).run();
-      } else {
-        editor.chain().focus().extendMarkRange('link').setLink({ href: mediaUrl }).run();
-      }
+      (editor.chain().focus() as any).insertContent({
+        type: 'externalEmbed',
+        attrs: { src: mediaUrl }
+      }).run();
     }
 
     setMediaUrl('');

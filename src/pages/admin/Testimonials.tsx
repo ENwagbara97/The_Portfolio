@@ -176,7 +176,7 @@ export default function AdminTestimonials() {
                 className="grid grid-cols-1 md:grid-cols-[40px_80px_1fr_auto] items-start md:items-center gap-4 md:gap-8 p-6 group !bg-[var(--admin-card)] !border-[var(--admin-border)] relative overflow-hidden cursor-default"
               >
                 {/* Drag Handle */}
-                <div className="hidden md:flex items-center justify-center text-[var(--admin-text-muted)] cursor-grab active:cursor-grabbing hover:text-[var(--admin-accent)] transition-colors">
+                <div className="flex items-center justify-center text-[var(--admin-text-muted)] cursor-grab active:cursor-grabbing hover:text-[var(--admin-accent)] transition-colors p-2 touch-none">
                   <GripVertical size={20} />
                 </div>
 
