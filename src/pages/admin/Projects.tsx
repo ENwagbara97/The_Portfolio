@@ -245,8 +245,8 @@ export default function AdminProjects() {
 
       {/* Full Edit Modal */}
       {editing && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[60] flex items-center justify-center p-0 md:p-4">
-          <div className="w-full h-full md:max-w-5xl md:h-[90vh] bg-[var(--admin-bg)] border-none md:border md:border-[var(--admin-border)] rounded-none md:rounded-2xl flex flex-col overflow-hidden animate-in zoom-in-95 md:zoom-in-100 duration-200">
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[70] flex items-center justify-center p-0 md:p-4">
+          <div className="w-full h-full md:max-w-5xl md:h-auto md:max-h-[90vh] bg-[var(--admin-bg)] border-none md:border md:border-[var(--admin-border)] rounded-none md:rounded-2xl flex flex-col overflow-hidden animate-in zoom-in-95 md:zoom-in-100 duration-200">
             {/* Modal Header */}
             <div className="p-6 border-b border-[var(--admin-border)] flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -556,7 +556,7 @@ export default function AdminProjects() {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 md:p-6 border-t border-[var(--admin-border)] flex flex-col sm:flex-row justify-between items-center gap-4 md:gap-0" style={{ backgroundColor: 'color-mix(in srgb, var(--admin-surface), transparent 50%)' }}>
+            <div className="p-4 md:p-6 pb-24 md:pb-6 border-t border-[var(--admin-border)] flex flex-col sm:flex-row justify-between items-center gap-4 md:gap-0" style={{ backgroundColor: 'color-mix(in srgb, var(--admin-surface), transparent 50%)' }}>
               <div className="flex gap-4 w-full sm:w-auto justify-center sm:justify-start">
                  <label className="flex items-center gap-2 text-[10px] md:text-sm text-[var(--admin-text)] cursor-pointer font-mono">
                     <input type="checkbox" className="w-4 h-4 rounded border-[var(--admin-border)]" checked={editing.is_featured || false} onChange={e => setEditing({...editing, is_featured: e.target.checked})} />

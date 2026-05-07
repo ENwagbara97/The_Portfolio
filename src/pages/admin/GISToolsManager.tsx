@@ -175,8 +175,8 @@ export default function GISToolsManager() {
 
       {/* Edit Modal */}
       {editing && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[70] flex items-center justify-center p-0 md:p-4">
+          <div className="w-full h-full md:h-auto md:max-h-[90vh] md:max-w-md bg-[var(--admin-bg)] border-none md:border md:border-[var(--admin-border)] rounded-none md:rounded-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-[var(--admin-border)] flex items-center justify-between" style={{ backgroundColor: 'color-mix(in srgb, var(--admin-surface), transparent 70%)' }}>
               <h2 className="text-xl font-display text-[var(--admin-text)]">{editing.id ? 'Edit Tool' : 'Add Tool'}</h2>
               <button onClick={() => setEditing(null)} className="text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors">
@@ -184,7 +184,7 @@ export default function GISToolsManager() {
               </button>
             </div>
 
-            <div className="p-8 space-y-4">
+            <div className="flex-1 overflow-y-auto p-8 space-y-4">
               <div>
                 <label className="block text-xs font-mono uppercase tracking-widest text-[var(--admin-text-muted)] mb-2">Title</label>
                 <input 
@@ -270,7 +270,7 @@ export default function GISToolsManager() {
               </div>
             </div>
 
-            <div className="p-6 border-t border-[var(--admin-border)] flex justify-end gap-3" style={{ backgroundColor: 'color-mix(in srgb, var(--admin-surface), transparent 50%)' }}>
+            <div className="p-6 pb-24 md:pb-6 border-t border-[var(--admin-border)] flex justify-end gap-3" style={{ backgroundColor: 'color-mix(in srgb, var(--admin-surface), transparent 50%)' }}>
               <button onClick={() => setEditing(null)} className="px-6 py-2 rounded-xl text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors">Cancel</button>
               <button onClick={handleSave} disabled={saving} className="min-w-[140px] flex items-center justify-center gap-2 px-6 py-2 rounded-xl transition-all font-bold" style={{ backgroundColor: 'var(--admin-accent)', color: 'white' }}>
                 {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}

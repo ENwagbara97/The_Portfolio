@@ -253,7 +253,7 @@ export default function AdminSettings() {
         </div>
 
         {/* Content Area ╬ô├ç├╢ BUG-01 FIX: each tab is fully self-contained */}
-        <div className="md:col-span-2 space-y-8">
+        <div className="md:col-span-2 space-y-8 pb-32 md:pb-0">
           
           {/* ╬ô├╢├ç╬ô├╢├ç APPEARANCE TAB ╬ô├╢├ç╬ô├╢├ç */}
           {activeTab === 'appearance' && (
