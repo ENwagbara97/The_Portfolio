@@ -259,7 +259,7 @@ export default function AdminTestimonials() {
 
       {/* Edit Modal */}
       {editing && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
           <div className="w-full max-w-2xl bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-[var(--admin-border)] flex items-center justify-between" style={{ backgroundColor: 'color-mix(in srgb, var(--admin-surface), transparent 70%)' }}>
               <h2 className="text-xl font-display text-[var(--admin-text)]">{editing.id ? 'Edit Testimonial' : 'New Testimonial'}</h2>

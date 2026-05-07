@@ -365,7 +365,7 @@ export default function RichTextEditor({ content, onChange, slug = 'temp' }: Ric
   return (
     <div className="w-full space-y-4 admin-editor-container">
       {/* TOOLBAR */}
-      <div className="sticky top-0 z-30 p-2 bg-[var(--admin-surface)]/95 border border-[var(--admin-border)] rounded-2xl flex flex-wrap gap-1 items-center shadow-2xl backdrop-blur-xl w-full">
+      <div className="sticky top-0 z-30 p-2 bg-[var(--admin-surface)]/95 border border-[var(--admin-border)] rounded-2xl flex flex-nowrap md:flex-wrap gap-1 items-center shadow-2xl backdrop-blur-xl w-full overflow-x-auto scrollbar-hide">
         <div className="flex items-center gap-1 pr-2 border-r border-[var(--border-default)] flex-shrink-0">
           <ToolbarButton 
             onClick={() => editor.chain().focus().toggleBold().run()}
@@ -624,7 +624,7 @@ export default function RichTextEditor({ content, onChange, slug = 'temp' }: Ric
 
       {/* MEDIA MODAL */}
       {mediaModal.isOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="w-full max-w-md bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-2xl overflow-hidden shadow-2xl">
             <div className="p-6 border-b border-[var(--admin-border)] flex items-center justify-between">
               <div className="flex items-center gap-3">

@@ -245,7 +245,7 @@ export default function AdminProjects() {
 
       {/* Full Edit Modal */}
       {editing && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-0 md:p-4">
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[60] flex items-center justify-center p-0 md:p-4">
           <div className="w-full h-full md:max-w-5xl md:h-[90vh] bg-[var(--admin-bg)] border-none md:border md:border-[var(--admin-border)] rounded-none md:rounded-2xl flex flex-col overflow-hidden animate-in zoom-in-95 md:zoom-in-100 duration-200">
             {/* Modal Header */}
             <div className="p-6 border-b border-[var(--admin-border)] flex items-center justify-between">
@@ -556,20 +556,20 @@ export default function AdminProjects() {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-6 border-t border-[var(--admin-border)] flex justify-between items-center" style={{ backgroundColor: 'color-mix(in srgb, var(--admin-surface), transparent 50%)' }}>
-              <div className="flex gap-4">
-                 <label className="flex items-center gap-2 text-sm text-[var(--admin-text)] cursor-pointer font-mono">
+            <div className="p-4 md:p-6 border-t border-[var(--admin-border)] flex flex-col sm:flex-row justify-between items-center gap-4 md:gap-0" style={{ backgroundColor: 'color-mix(in srgb, var(--admin-surface), transparent 50%)' }}>
+              <div className="flex gap-4 w-full sm:w-auto justify-center sm:justify-start">
+                 <label className="flex items-center gap-2 text-[10px] md:text-sm text-[var(--admin-text)] cursor-pointer font-mono">
                     <input type="checkbox" className="w-4 h-4 rounded border-[var(--admin-border)]" checked={editing.is_featured || false} onChange={e => setEditing({...editing, is_featured: e.target.checked})} />
                     IS_FEATURED
                   </label>
-                  <label className="flex items-center gap-2 text-sm text-[var(--admin-text)] cursor-pointer font-mono">
+                  <label className="flex items-center gap-2 text-[10px] md:text-sm text-[var(--admin-text)] cursor-pointer font-mono">
                     <input type="checkbox" className="w-4 h-4 rounded border-[var(--admin-border)]" checked={editing.is_active !== false} onChange={e => setEditing({...editing, is_active: e.target.checked})} />
                     SYSTEM_ACTIVE
                   </label>
               </div>
-              <div className="flex gap-3">
-                <button onClick={() => setEditing(null)} className="px-6 py-2 rounded-xl text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors">Cancel</button>
-                <button onClick={handleSave} disabled={saving} className="min-w-[160px] flex items-center justify-center gap-2 px-6 py-2 rounded-xl transition-all" style={{ backgroundColor: 'var(--admin-accent)', color: 'white' }}>
+              <div className="flex gap-3 w-full sm:w-auto">
+                <button onClick={() => setEditing(null)} className="flex-1 sm:flex-none px-4 md:px-6 py-2 rounded-xl text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors text-sm">Cancel</button>
+                <button onClick={handleSave} disabled={saving} className="flex-1 sm:flex-none min-w-[140px] md:min-w-[160px] flex items-center justify-center gap-2 px-6 py-2 rounded-xl transition-all text-sm font-bold" style={{ backgroundColor: 'var(--admin-accent)', color: 'white' }}>
                   {saving && <Loader2 size={16} className="animate-spin" />}
                   {editing.id ? 'Save Changes' : 'Publish Project'}
                 </button>
