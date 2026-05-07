@@ -27,7 +27,7 @@ function MobileAdminNav() {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex border-t safe-area-inset-bottom"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex border-t safe-area-inset-bottom"
       style={{
         backgroundColor: 'var(--admin-sidebar-bg)',
         borderColor: 'var(--admin-border)',
